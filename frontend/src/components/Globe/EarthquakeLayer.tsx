@@ -57,6 +57,7 @@ function BucketMesh({ quakes, color, onSelect }: BucketMeshProps) {
 
 export function EarthquakeLayer() {
   const selectEarthquake = useAppStore((s) => s.selectEarthquake);
+  const timeRange = useAppStore((s) => s.timeRange);
 
   const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
 
@@ -71,15 +72,27 @@ export function EarthquakeLayer() {
     };
   }, []);
 
+  // Narrow to the user-selected time range (client-side — the full dataset
+  // is already fetched, so no refetch is needed while dragging the slider).
+  const filtered = useMemo(() => {
+    if (!timeRange) return quakes;
+    const [start, end] = timeRange;
+    return quakes.filter((eq) => {
+      if (!eq.occurred_at) return false;
+      const t = new Date(eq.occurred_at).getTime();
+      return t >= start && t <= end;
+    });
+  }, [quakes, timeRange]);
+
   // Group quakes into magnitude buckets — each bucket renders as its own
   // uniformly-colored InstancedMesh (see utils/magnitude.ts for why).
   const buckets = useMemo(() => {
     const groups: EarthquakeOut[][] = Array.from({ length: MAG_BUCKET_COUNT }, () => []);
-    for (const eq of quakes) {
+    for (const eq of filtered) {
       groups[magBucketIndex(eq.magnitude)].push(eq);
     }
     return groups;
-  }, [quakes]);
+  }, [filtered]);
 
   return (
     <>

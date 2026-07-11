@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { GlobeCanvas } from "./components/Globe/GlobeCanvas";
 import { StatsPanel } from "./components/Sidebar/StatsPanel";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
+import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         >
           <GlobeCanvas />
         </Suspense>
+        <TimeRangeSlider />
       </div>
 
       {/* Right sidebar */}
