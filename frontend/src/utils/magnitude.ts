@@ -59,3 +59,14 @@ export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT
   const b = Math.round(lerp(COLOR_LOW[2], COLOR_HIGH[2], t));
   return `rgb(${r}, ${g}, ${b})`;
 });
+
+// Replay fade-out duration per magnitude bucket: weaker quakes fade within
+// hours, the strongest linger for a few days — bigger quakes stay visually
+// significant longer.
+const MIN_FADE_HOURS = 12;
+const MAX_FADE_HOURS = 10 * 24;
+
+export const MAG_BUCKET_FADE_DURATIONS_MS: number[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) => {
+  const t = (i + 0.5) / MAG_BUCKET_COUNT;
+  return (MIN_FADE_HOURS + t * (MAX_FADE_HOURS - MIN_FADE_HOURS)) * 60 * 60 * 1000;
+});

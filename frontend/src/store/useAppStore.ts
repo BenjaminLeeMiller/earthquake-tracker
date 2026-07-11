@@ -24,12 +24,22 @@ interface AppState {
   translucentGlobe: boolean;
   faultLayers: Record<FaultLayerKey, boolean>;
 
+  // "Radar loop" replay: sweeps the currently selected timeRange window,
+  // revealing quakes at full opacity as the clock passes their occurred_at,
+  // then fading them out (see MAG_BUCKET_FADE_DURATIONS_MS in magnitude.ts).
+  isPlaying: boolean;
+  playbackTime: number | null; // epoch ms; null = not yet started
+  playbackSpeedDaysPerSec: number;
+
   setStats: (stats: GlobeStats) => void;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
   setTimeRange: (range: [number, number]) => void;
   setMagRange: (range: [number, number]) => void;
   setTranslucentGlobe: (translucent: boolean) => void;
   setFaultLayer: (key: FaultLayerKey, value: boolean) => void;
+  setIsPlaying: (playing: boolean) => void;
+  setPlaybackTime: (time: number | null) => void;
+  setPlaybackSpeed: (daysPerSec: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -39,6 +49,9 @@ export const useAppStore = create<AppState>((set) => ({
   magRange: [DEFAULT_MIN_MAGNITUDE, MAX_MAG],
   translucentGlobe: true,
   faultLayers: { plateBoundaries: true },
+  isPlaying: false,
+  playbackTime: null,
+  playbackSpeedDaysPerSec: 1,
 
   setStats: (stats) => set({ stats }),
   selectEarthquake: (eq) => set({ selectedEarthquake: eq }),
@@ -46,4 +59,7 @@ export const useAppStore = create<AppState>((set) => ({
   setMagRange: (range) => set({ magRange: range }),
   setTranslucentGlobe: (translucent) => set({ translucentGlobe: translucent }),
   setFaultLayer: (key, value) => set((s) => ({ faultLayers: { ...s.faultLayers, [key]: value } })),
+  setIsPlaying: (playing) => set({ isPlaying: playing }),
+  setPlaybackTime: (time) => set({ playbackTime: time }),
+  setPlaybackSpeed: (daysPerSec) => set({ playbackSpeedDaysPerSec: daysPerSec }),
 }));

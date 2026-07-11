@@ -4,6 +4,7 @@ import { StatsPanel } from "./components/Sidebar/StatsPanel";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
 import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
 import { MagnitudeRangeSlider } from "./components/Controls/MagnitudeRangeSlider";
+import { PlaybackControls } from "./components/Controls/PlaybackControls";
 import { GlobeOpacityToggle } from "./components/Controls/GlobeOpacityToggle";
 import { FaultLayerToggles } from "./components/Controls/FaultLayerToggles";
 
@@ -57,6 +58,7 @@ export default function App() {
         <FaultLayerToggles />
         <TimeRangeSlider />
         <MagnitudeRangeSlider />
+        <PlaybackControls />
         <EarthquakeDetail />
       </div>
     </div>
