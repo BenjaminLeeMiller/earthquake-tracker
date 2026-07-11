@@ -4,6 +4,7 @@ import { InstancedMesh, Object3D, Vector3 } from "three";
 import { useAppStore } from "../../store/useAppStore";
 import { fetchAllEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
 import { latLonToXYZ, latLonDepthToXYZ } from "../../utils/grid";
+import { horizonThreshold, isFacingCamera } from "../../utils/horizon";
 import {
   magRadius,
   magBucketIndex,
@@ -30,7 +31,7 @@ interface MarkerDatum {
 
 function BucketMesh({ quakes, color, onSelect }: BucketMeshProps) {
   const meshRef = useRef<InstancedMesh>(null);
-  const hideFarSide = useAppStore((s) => s.hideFarSide);
+  const translucentGlobe = useAppStore((s) => s.translucentGlobe);
 
   // Precomputed once per quake-list change, not every frame.
   const markerData = useMemo<MarkerDatum[]>(
@@ -53,10 +54,10 @@ function BucketMesh({ quakes, color, onSelect }: BucketMeshProps) {
     mesh.count = markerData.length;
   }, [markerData]);
 
-  // Resting state (all visible) whenever the data changes and far-side
-  // hiding is off. When it's on, useFrame below takes over every frame.
+  // Resting state (all visible) whenever the data changes and the globe is
+  // translucent. When opaque, useFrame below takes over every frame.
   useEffect(() => {
-    if (hideFarSide) return;
+    if (!translucentGlobe) return;
     const mesh = meshRef.current;
     if (!mesh) return;
     for (let i = 0; i < markerData.length; i++) {
@@ -67,30 +68,21 @@ function BucketMesh({ quakes, color, onSelect }: BucketMeshProps) {
       mesh.setMatrixAt(i, dummy.matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
-  }, [markerData, hideFarSide]);
+  }, [markerData, translucentGlobe]);
 
   // The globe rotates (and zooms) freely via OrbitControls, so which markers
   // count as "past the horizon" changes continuously — re-cull against the
-  // live camera every frame while the toggle is on.
-  //
-  // The visible cap is NOT the full hemisphere facing the camera (dot >= 0)
-  // — that's only true for a camera infinitely far away. For a camera at
-  // finite distance d from a sphere of radius r (=1, the globe's own
-  // surface radius from EarthSphere.tsx), the true horizon/silhouette sits
-  // at angle arccos(r/d) from the camera-facing direction, i.e. a point is
-  // visible only when dot(dir, cameraDir) >= r/d. Using 0 instead of r/d
-  // let markers between the true horizon and the full-hemisphere boundary
-  // stay visible well after they'd visually crossed the limb.
+  // live camera every frame while the globe is opaque (see utils/horizon.ts
+  // for why the threshold isn't a flat 0/full-hemisphere test).
   useFrame(({ camera }) => {
     const mesh = meshRef.current;
-    if (!mesh || !hideFarSide) return;
+    if (!mesh || translucentGlobe) return;
     const cameraDistance = camera.position.length();
     cameraDir.copy(camera.position).divideScalar(cameraDistance);
-    const horizonThreshold = 1 / cameraDistance;
+    const threshold = horizonThreshold(cameraDistance);
     for (let i = 0; i < markerData.length; i++) {
       const { dir, pos, radius } = markerData[i];
-      const facingCamera =
-        dir[0] * cameraDir.x + dir[1] * cameraDir.y + dir[2] * cameraDir.z >= horizonThreshold;
+      const facingCamera = isFacingCamera(dir, cameraDir, threshold);
       dummy.position.set(pos[0], pos[1], pos[2]);
       dummy.scale.setScalar(facingCamera ? radius : 0);
       dummy.updateMatrix();

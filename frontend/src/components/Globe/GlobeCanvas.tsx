@@ -2,8 +2,15 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EarthSphere } from "./EarthSphere";
 import { EarthquakeLayer } from "./EarthquakeLayer";
+import { FaultLines } from "./FaultLines";
+import { useAppStore } from "../../store/useAppStore";
+// Bird (2002) plate boundaries, via github.com/fraxen/tectonicplates
+// (GeoJSON/PB2002_boundaries.json), trimmed to coordinate arrays only.
+import plateBoundaries from "../../assets/plate-boundaries.json";
 
 export function GlobeCanvas() {
+  const plateBoundariesOn = useAppStore((s) => s.faultLayers.plateBoundaries);
+
   return (
     <Canvas
       style={{ width: "100%", height: "100%" }}
@@ -14,6 +21,7 @@ export function GlobeCanvas() {
       <color attach="background" args={["#000408"]} />
       <EarthSphere />
       <EarthquakeLayer />
+      {plateBoundariesOn && <FaultLines lines={plateBoundaries as [number, number][][]} />}
       <OrbitControls
         enablePan={false}
         minDistance={1.3}
