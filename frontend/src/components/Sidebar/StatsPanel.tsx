@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { fetchGlobeStats } from "../../api/earthquakes";
 import { useAppStore } from "../../store/useAppStore";
+import { panelStyle } from "./panelStyle";
 
 function fmt(dt: string | null) {
   if (!dt) return "—";
@@ -49,11 +50,3 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-const panelStyle: React.CSSProperties = {
-  padding: 16,
-  background: "rgba(0,0,0,0.7)",
-  borderRadius: 8,
-  backdropFilter: "blur(8px)",
-  borderBottom: "1px solid #1a2a3a",
-};

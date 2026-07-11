@@ -1,5 +1,5 @@
-const MIN_MAG = 0;
-const MAX_MAG = 8;
+export const MIN_MAG = 0;
+export const MAX_MAG = 10;
 const CURVE = 1.6;
 
 function normalizedMag(mag: number | null): number {

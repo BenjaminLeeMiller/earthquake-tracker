@@ -1,9 +1,12 @@
 import { useEffect } from "react";
 import { useAppStore } from "../../store/useAppStore";
+import { panelStyle } from "../Sidebar/panelStyle";
 
 function fmt(ms: number) {
   return new Date(ms).toLocaleDateString();
 }
+
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function TimeRangeSlider() {
   const stats = useAppStore((s) => s.stats);
@@ -17,7 +20,11 @@ export function TimeRangeSlider() {
 
   useEffect(() => {
     if (bounds && !timeRange) {
-      setTimeRange([bounds[0], bounds[1]]);
+      // Default the starting date to 1 week ago (clamped to the available
+      // data), not all the way back to the earliest quake — the slider's
+      // own draggable bounds still span the full dataset.
+      const defaultStart = Math.max(bounds[0], Math.min(Date.now() - ONE_WEEK_MS, bounds[1]));
+      setTimeRange([defaultStart, bounds[1]]);
     }
   }, [bounds, timeRange, setTimeRange]);
 
@@ -27,7 +34,7 @@ export function TimeRangeSlider() {
   const [start, end] = timeRange;
 
   return (
-    <div style={styles.wrapper}>
+    <div style={{ ...panelStyle, ...styles.wrapper }}>
       <span style={styles.label}>Time Range</span>
       <span style={styles.value}>
         {fmt(start)} – {fmt(end)}
@@ -65,18 +72,9 @@ export function TimeRangeSlider() {
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: {
-    position: "absolute",
-    bottom: 20,
-    left: "50%",
-    transform: "translateX(-50%)",
     display: "flex",
     flexDirection: "column",
     gap: 6,
-    padding: "12px 16px",
-    background: "rgba(0,0,0,0.7)",
-    borderRadius: 8,
-    backdropFilter: "blur(8px)",
-    minWidth: 280,
   },
   label: { fontSize: 12, color: "#a0b0c0", letterSpacing: "0.05em", textTransform: "uppercase" },
   value: { fontSize: 16, fontWeight: 600, color: "#e0f0ff" },

@@ -3,6 +3,9 @@ import { GlobeCanvas } from "./components/Globe/GlobeCanvas";
 import { StatsPanel } from "./components/Sidebar/StatsPanel";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
 import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
+import { MagnitudeRangeSlider } from "./components/Controls/MagnitudeRangeSlider";
+import { GlobeOpacityToggle } from "./components/Controls/GlobeOpacityToggle";
+import { FarSideToggle } from "./components/Controls/FarSideToggle";
 
 export default function App() {
   return (
@@ -35,7 +38,6 @@ export default function App() {
         >
           <GlobeCanvas />
         </Suspense>
-        <TimeRangeSlider />
       </div>
 
       {/* Right sidebar */}
@@ -51,6 +53,10 @@ export default function App() {
         }}
       >
         <StatsPanel />
+        <GlobeOpacityToggle />
+        <FarSideToggle />
+        <TimeRangeSlider />
+        <MagnitudeRangeSlider />
         <EarthquakeDetail />
       </div>
     </div>

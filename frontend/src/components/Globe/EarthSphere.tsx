@@ -1,8 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { useTexture } from "@react-three/drei";
-import { BufferGeometry, Float32BufferAttribute, SRGBColorSpace } from "three";
+import { BackSide, BufferGeometry, Float32BufferAttribute, SRGBColorSpace } from "three";
 import earthMapUrl from "../../assets/earth-map.jpg";
 import { latLonToXYZ } from "../../utils/grid";
+import { useAppStore } from "../../store/useAppStore";
+
+const TRANSLUCENT_OPACITY = 0.55;
+const OPAQUE_OPACITY = 1;
 
 const LON_STEPS = 128;
 const LAT_STEPS = 64;
@@ -59,22 +63,39 @@ function buildGlobeGeometry(): BufferGeometry {
  * Globe: a real map texture, semi-transparent so quake markers positioned
  * below the surface (by depth) remain visible through it. No depth write,
  * so markers aren't occluded by the shell itself — only by other markers.
- * Default (front) side only — rendering both sides here would let the far
- * hemisphere bleed through the near one, which reads as a mirrored map even
- * though each side is individually correct.
+ *
+ * When translucent, the far hemisphere is drawn too (BackSide, same geometry
+ * and texture) so its landmasses show faintly through the near side — as a
+ * separate mesh with an explicit lower renderOrder, so it always paints
+ * before (behind) the near hemisphere. A single DoubleSide mesh can't
+ * guarantee that draw order (transparent triangles within one mesh aren't
+ * depth-sorted against each other), which produced a jumbled double-exposure
+ * instead of a clean "seen through glass" far layer.
  */
 export function EarthSphere() {
   const texture = useTexture(earthMapUrl);
   const geometry = useMemo(() => buildGlobeGeometry(), []);
+  const translucentGlobe = useAppStore((s) => s.translucentGlobe);
 
   useEffect(() => {
     texture.colorSpace = SRGBColorSpace;
     texture.needsUpdate = true;
   }, [texture]);
 
+  const opacity = translucentGlobe ? TRANSLUCENT_OPACITY : OPAQUE_OPACITY;
+
   return (
-    <mesh geometry={geometry}>
-      <meshBasicMaterial map={texture} transparent opacity={0.55} depthWrite={false} />
-    </mesh>
+    <>
+      {/* renderOrder -1/0, strictly below EarthquakeLayer markers' renderOrder
+          1 — markers must still always draw on top of both globe layers. */}
+      {translucentGlobe && (
+        <mesh geometry={geometry} renderOrder={-1}>
+          <meshBasicMaterial map={texture} transparent opacity={opacity} depthWrite={false} side={BackSide} />
+        </mesh>
+      )}
+      <mesh geometry={geometry} renderOrder={0}>
+        <meshBasicMaterial map={texture} transparent opacity={opacity} depthWrite={false} />
+      </mesh>
+    </>
   );
 }
