@@ -25,11 +25,16 @@ export function magColor(mag: number | null): string {
 }
 
 /** Magnitude→sphere radius (world units; base sphereGeometry radius is 1). */
-const MIN_R = 0.004;
+const MIN_R = 0.001;
 const MAX_R = 0.05;
+// Steeper than the color curve (CURVE) so small quakes shrink further
+// relative to the max, without affecting the color gradient.
+const RADIUS_CURVE = 2.6;
 
 export function magRadius(mag: number | null): number {
-  return MIN_R + normalizedMag(mag) * (MAX_R - MIN_R);
+  const m = Math.max(MIN_MAG, Math.min(MAX_MAG, mag ?? MIN_MAG));
+  const t = Math.pow((m - MIN_MAG) / (MAX_MAG - MIN_MAG), RADIUS_CURVE);
+  return MIN_R + t * (MAX_R - MIN_R);
 }
 
 /**

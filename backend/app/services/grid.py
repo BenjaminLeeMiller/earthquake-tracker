@@ -57,7 +57,7 @@ def cell_center(cell: CellID) -> tuple[float, float, float]:
 
 def lat_lon_to_xyz(lat: float, lon: float, radius: float = 1.0) -> tuple[float, float, float]:
     """Convert lat/lon (degrees) to unit sphere XYZ (Y-up convention)."""
-    x = radius * cos(radians(lat)) * cos(radians(lon))
+    x = radius * cos(radians(lat)) * sin(radians(lon))
     y = radius * sin(radians(lat))
-    z = radius * cos(radians(lat)) * sin(radians(lon))
+    z = radius * cos(radians(lat)) * cos(radians(lon))
     return x, y, z

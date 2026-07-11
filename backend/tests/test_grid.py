@@ -107,9 +107,9 @@ class TestLatLonToXYZ:
 
     def test_equator_prime_meridian(self):
         x, y, z = lat_lon_to_xyz(0, 0)
-        assert abs(x - 1.0) < 1e-10
+        assert abs(x) < 1e-10
         assert abs(y) < 1e-10
-        assert abs(z) < 1e-10
+        assert abs(z - 1.0) < 1e-10
 
     def test_unit_length(self):
         from math import sqrt

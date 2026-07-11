@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { GlobeCanvas } from "./components/Globe/GlobeCanvas";
-import { DepthSlider } from "./components/Controls/DepthSlider";
 import { StatsPanel } from "./components/Sidebar/StatsPanel";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
 
@@ -35,23 +34,6 @@ export default function App() {
         >
           <GlobeCanvas />
         </Suspense>
-
-        {/* Bottom controls overlay */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 24,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 8,
-            pointerEvents: "all",
-          }}
-        >
-          <DepthSlider />
-        </div>
       </div>
 
       {/* Right sidebar */}

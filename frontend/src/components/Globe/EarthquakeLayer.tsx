@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ThreeEvent } from "@react-three/fiber";
 import { InstancedMesh, Object3D } from "three";
 import { useAppStore } from "../../store/useAppStore";
-import { fetchLayerEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
+import { fetchAllEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
 import { latLonDepthToXYZ } from "../../utils/grid";
 import { magRadius, magBucketIndex, MAG_BUCKET_COUNT, MAG_BUCKET_COLORS } from "../../utils/magnitude";
 
@@ -44,30 +44,32 @@ function BucketMesh({ quakes, color, onSelect }: BucketMeshProps) {
   };
 
   return (
-    <instancedMesh ref={meshRef} args={[undefined, undefined, quakes.length]} onClick={handleClick}>
+    // renderOrder + transparent: EarthSphere is transparent, so three.js
+    // renders it in the transparent pass after all opaque objects by
+    // default — without this, the translucent globe would paint over these
+    // markers regardless of actual depth, dimming/tinting them.
+    <instancedMesh ref={meshRef} args={[undefined, undefined, quakes.length]} onClick={handleClick} renderOrder={1}>
       <sphereGeometry args={[1, 12, 8]} />
-      <meshBasicMaterial color={color} />
+      <meshBasicMaterial color={color} transparent />
     </instancedMesh>
   );
 }
 
 export function EarthquakeLayer() {
-  const depthLayer = useAppStore((s) => s.depthLayer);
   const selectEarthquake = useAppStore((s) => s.selectEarthquake);
 
   const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
 
-  // Fetch quakes when depth layer changes
+  // Fetch all earthquakes once on mount
   useEffect(() => {
     let cancelled = false;
-    setQuakes([]);
-    fetchLayerEarthquakes(depthLayer).then(({ items }) => {
+    fetchAllEarthquakes().then(({ items }) => {
       if (!cancelled) setQuakes(items);
     });
     return () => {
       cancelled = true;
     };
-  }, [depthLayer]);
+  }, []);
 
   // Group quakes into magnitude buckets — each bucket renders as its own
   // uniformly-colored InstancedMesh (see utils/magnitude.ts for why).

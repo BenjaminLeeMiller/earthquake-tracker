@@ -3,57 +3,15 @@
  */
 const EARTH_RADIUS_MILES = 3959.0;
 export const EARTH_RADIUS_KM = EARTH_RADIUS_MILES * 1.60934; // ≈ 6371 km
-const EARTH_CIRCUMFERENCE = 2 * Math.PI * EARTH_RADIUS_MILES;
-const CELL_SIZE_MILES = 5.0;
-export const CELL_SIZE_KM = CELL_SIZE_MILES * 1.60934;
-export const LAT_DEG_PER_BAND = (360 * CELL_SIZE_MILES) / EARTH_CIRCUMFERENCE;
-export const TOTAL_LAT_BANDS = Math.round(180 / LAT_DEG_PER_BAND);
-export const MAX_DEPTH_LAYERS = 90;
-
-function clamp(v: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, v));
-}
-
-export function cellsInLatBand(latBand: number): number {
-  const centerLat = -90 + (latBand + 0.5) * LAT_DEG_PER_BAND;
-  return Math.max(
-    1,
-    Math.round((360 * Math.cos((centerLat * Math.PI) / 180)) / LAT_DEG_PER_BAND)
-  );
-}
-
-export interface CellID {
-  depthLayer: number;
-  latBand: number;
-  lonIndex: number;
-}
-
-export function coordsToCell(lat: number, lon: number, depthKm: number): CellID {
-  const depthLayer = clamp(Math.floor(depthKm / CELL_SIZE_KM), 0, MAX_DEPTH_LAYERS - 1);
-  const latBand = clamp(Math.floor((lat + 90) / LAT_DEG_PER_BAND), 0, TOTAL_LAT_BANDS - 1);
-  const n = cellsInLatBand(latBand);
-  const lonNorm = ((lon + 180) % 360 + 360) % 360;
-  const lonIndex = clamp(Math.floor(lonNorm / (360 / n)), 0, n - 1);
-  return { depthLayer, latBand, lonIndex };
-}
-
-export function cellCenter(cell: CellID): [number, number, number] {
-  const centerLat = -90 + (cell.latBand + 0.5) * LAT_DEG_PER_BAND;
-  const n = cellsInLatBand(cell.latBand);
-  const lonStep = 360 / n;
-  const centerLon = -180 + (cell.lonIndex + 0.5) * lonStep;
-  const centerDepthKm = (cell.depthLayer + 0.5) * CELL_SIZE_KM;
-  return [centerLat, centerLon, centerDepthKm];
-}
 
 /** Convert lat/lon (degrees) to 3D XYZ on a sphere of given radius (Y-up). */
 export function latLonToXYZ(lat: number, lon: number, radius = 1.0): [number, number, number] {
   const φ = (lat * Math.PI) / 180;
   const λ = (lon * Math.PI) / 180;
   return [
-    radius * Math.cos(φ) * Math.cos(λ),
-    radius * Math.sin(φ),
     radius * Math.cos(φ) * Math.sin(λ),
+    radius * Math.sin(φ),
+    radius * Math.cos(φ) * Math.cos(λ),
   ];
 }
 

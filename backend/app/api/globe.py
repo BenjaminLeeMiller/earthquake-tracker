@@ -17,15 +17,10 @@ router = APIRouter(prefix="/globe", tags=["globe"])
 
 
 @router.get("/earthquakes", response_model=EarthquakeListResponse)
-async def get_layer_earthquakes(
-    depth_layer: int = Query(0, ge=0, le=89),
-    db: AsyncSession = Depends(get_db),
-):
-    """Return all individual earthquakes for a given depth layer, unpaginated."""
+async def get_earthquakes(db: AsyncSession = Depends(get_db)):
+    """Return all earthquakes, unpaginated."""
     result = await db.execute(
-        select(Earthquake)
-        .where(Earthquake.depth_layer == depth_layer)
-        .order_by(Earthquake.occurred_at.desc())
+        select(Earthquake).order_by(Earthquake.occurred_at.desc())
     )
     items = result.scalars().all()
     return EarthquakeListResponse(total=len(items), items=items)

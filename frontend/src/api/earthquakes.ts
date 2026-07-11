@@ -39,8 +39,8 @@ export function triggerRefresh(): Promise<{ status: string }> {
   return apiFetch("/earthquakes/refresh", { method: "POST" });
 }
 
-export function fetchLayerEarthquakes(depthLayer: number): Promise<EarthquakeListResponse> {
-  return apiFetch(`/globe/earthquakes?depth_layer=${depthLayer}`);
+export function fetchAllEarthquakes(): Promise<EarthquakeListResponse> {
+  return apiFetch("/globe/earthquakes");
 }
 
 export function fetchGlobeStats(): Promise<GlobeStats> {
