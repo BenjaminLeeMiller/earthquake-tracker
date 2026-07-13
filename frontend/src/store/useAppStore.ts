@@ -66,8 +66,12 @@ export const useAppStore = create<AppState>((set) => ({
 
   setStats: (stats) => set({ stats }),
   selectEarthquake: (eq) => set({ selectedEarthquake: eq }),
-  setTimeRange: (range) => set({ timeRange: range }),
-  setMagRange: (range) => set({ magRange: range }),
+  // Changing either filter mid-replay stops and resets playback rather than
+  // letting it keep running against a filter it was never computed for —
+  // see handleReset in PlaybackControls.tsx for why null (not timeRange[0])
+  // is the "stopped" playbackTime value.
+  setTimeRange: (range) => set({ timeRange: range, isPlaying: false, playbackTime: null }),
+  setMagRange: (range) => set({ magRange: range, isPlaying: false, playbackTime: null }),
   setTranslucentGlobe: (translucent) => set({ translucentGlobe: translucent }),
   setFaultLayer: (key, value) => set((s) => ({ faultLayers: { ...s.faultLayers, [key]: value } })),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
