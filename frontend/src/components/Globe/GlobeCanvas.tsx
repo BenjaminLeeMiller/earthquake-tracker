@@ -3,13 +3,20 @@ import { OrbitControls } from "@react-three/drei";
 import { EarthSphere } from "./EarthSphere";
 import { EarthquakeLayer } from "./EarthquakeLayer";
 import { FaultLines } from "./FaultLines";
+import { VolcanoLayer } from "./VolcanoLayer";
 import { useAppStore } from "../../store/useAppStore";
 // Bird (2002) plate boundaries, via github.com/fraxen/tectonicplates
 // (GeoJSON/PB2002_boundaries.json), trimmed to coordinate arrays only.
 import plateBoundaries from "../../assets/plate-boundaries.json";
+// Smithsonian Global Volcanism Program, Holocene volcano list (VOTW
+// database), via their GeoServer WFS, trimmed to essential fields only.
+import volcanoes from "../../assets/volcanoes.json";
+import type { VolcanoRecord } from "../../types/volcano";
 
 export function GlobeCanvas() {
   const plateBoundariesOn = useAppStore((s) => s.faultLayers.plateBoundaries);
+  const volcanoesVisible = useAppStore((s) => s.volcanoesVisible);
+  const selectVolcano = useAppStore((s) => s.selectVolcano);
 
   return (
     <Canvas
@@ -22,6 +29,9 @@ export function GlobeCanvas() {
       <EarthSphere />
       <EarthquakeLayer />
       {plateBoundariesOn && <FaultLines lines={plateBoundaries as [number, number][][]} />}
+      {volcanoesVisible && (
+        <VolcanoLayer volcanoes={volcanoes as VolcanoRecord[]} onSelect={selectVolcano} />
+      )}
       <OrbitControls
         enablePan={false}
         minDistance={1.3}

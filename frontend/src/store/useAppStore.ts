@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { EarthquakeOut, GlobeStats } from "../api/earthquakes";
+import type { VolcanoRecord } from "../types/volcano";
 import { MAX_MAG } from "../utils/magnitude";
 
 // Default filter starting points on load (the sliders' own min/max bounds
@@ -15,6 +16,7 @@ export type FaultLayerKey = "plateBoundaries";
 interface AppState {
   stats: GlobeStats | null;
   selectedEarthquake: EarthquakeOut | null;
+  selectedVolcano: VolcanoRecord | null;
   timeRange: [number, number] | null;
   magRange: [number, number];
   // Governs three things together: globe opacity, far-side quake
@@ -23,6 +25,10 @@ interface AppState {
   // far-side quakes and fault-line segments hidden.
   translucentGlobe: boolean;
   faultLayers: Record<FaultLayerKey, boolean>;
+  // Static volcano-location marker layer. Defaults off — dense clusters
+  // (e.g. East African Rift) can visually overwhelm the globe unless
+  // explicitly opted into.
+  volcanoesVisible: boolean;
 
   // "Radar loop" replay: sweeps the currently selected timeRange window,
   // revealing quakes at full opacity as the clock passes their occurred_at,
@@ -40,10 +46,12 @@ interface AppState {
 
   setStats: (stats: GlobeStats) => void;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
+  selectVolcano: (v: VolcanoRecord | null) => void;
   setTimeRange: (range: [number, number]) => void;
   setMagRange: (range: [number, number]) => void;
   setTranslucentGlobe: (translucent: boolean) => void;
   setFaultLayer: (key: FaultLayerKey, value: boolean) => void;
+  setVolcanoesVisible: (visible: boolean) => void;
   setIsPlaying: (playing: boolean) => void;
   setPlaybackTime: (time: number | null) => void;
   setPlaybackSpeed: (daysPerSec: number) => void;
@@ -54,10 +62,12 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   stats: null,
   selectedEarthquake: null,
+  selectedVolcano: null,
   timeRange: null,
   magRange: [DEFAULT_MIN_MAGNITUDE, MAX_MAG],
   translucentGlobe: false,
   faultLayers: { plateBoundaries: true },
+  volcanoesVisible: false,
   isPlaying: false,
   playbackTime: null,
   playbackSpeedDaysPerSec: 1,
@@ -65,7 +75,12 @@ export const useAppStore = create<AppState>((set) => ({
   dataVersion: 0,
 
   setStats: (stats) => set({ stats }),
-  selectEarthquake: (eq) => set({ selectedEarthquake: eq }),
+  // Earthquake and volcano selection are mutually exclusive — both detail
+  // panels share the same sidebar space, so selecting one clears the other
+  // (but deselecting, i.e. passing null, leaves an unrelated selection
+  // alone).
+  selectEarthquake: (eq) => set((s) => ({ selectedEarthquake: eq, selectedVolcano: eq ? null : s.selectedVolcano })),
+  selectVolcano: (v) => set((s) => ({ selectedVolcano: v, selectedEarthquake: v ? null : s.selectedEarthquake })),
   // Changing either filter mid-replay stops and resets playback rather than
   // letting it keep running against a filter it was never computed for —
   // see handleReset in PlaybackControls.tsx for why null (not timeRange[0])
@@ -74,6 +89,7 @@ export const useAppStore = create<AppState>((set) => ({
   setMagRange: (range) => set({ magRange: range, isPlaying: false, playbackTime: null }),
   setTranslucentGlobe: (translucent) => set({ translucentGlobe: translucent }),
   setFaultLayer: (key, value) => set((s) => ({ faultLayers: { ...s.faultLayers, [key]: value } })),
+  setVolcanoesVisible: (visible) => set({ volcanoesVisible: visible }),
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setPlaybackTime: (time) => set({ playbackTime: time }),
   setPlaybackSpeed: (daysPerSec) => set({ playbackSpeedDaysPerSec: daysPerSec }),
