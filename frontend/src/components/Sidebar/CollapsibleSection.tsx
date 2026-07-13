@@ -1,32 +1,32 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useAppStore } from "../../store/useAppStore";
 import { panelStyle } from "./panelStyle";
 
 interface CollapsibleSectionProps {
+  // Unique key coordinating the sidebar's accordion behavior — expanding
+  // this section collapses whichever other <CollapsibleSection> was open
+  // (see expandedSection in useAppStore.ts).
+  id: string;
   label: string;
-  summary: ReactNode;
-  defaultExpanded?: boolean;
+  summary?: ReactNode;
   children: ReactNode;
 }
 
-export function CollapsibleSection({
-  label,
-  summary,
-  defaultExpanded = false,
-  children,
-}: CollapsibleSectionProps) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+export function CollapsibleSection({ id, label, summary, children }: CollapsibleSectionProps) {
+  const expanded = useAppStore((s) => s.expandedSection === id);
+  const setExpandedSection = useAppStore((s) => s.setExpandedSection);
 
   return (
     <div style={{ ...panelStyle, ...styles.wrapper }}>
       <button
         type="button"
         style={styles.header}
-        onClick={() => setExpanded((e) => !e)}
+        onClick={() => setExpandedSection(expanded ? null : id)}
         aria-expanded={expanded}
       >
         <div style={styles.headerText}>
           <span style={styles.label}>{label}</span>
-          <span style={styles.value}>{summary}</span>
+          {summary !== undefined && <span style={styles.value}>{summary}</span>}
         </div>
         <span style={styles.chevron}>{expanded ? "▼" : "▶"}</span>
       </button>

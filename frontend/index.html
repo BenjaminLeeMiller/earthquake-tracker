@@ -19,6 +19,27 @@
         color: #e0e0e0;
         font-family: system-ui, sans-serif;
       }
+
+      /* Scrollable panes (e.g. the sidebar) default to an invisible
+         scrollbar against this dark background, making overflowed content
+         look like a dead end rather than something you can scroll to. */
+      .scrollable-pane {
+        scrollbar-width: thin;
+        scrollbar-color: #334455 transparent;
+      }
+      .scrollable-pane::-webkit-scrollbar {
+        width: 8px;
+      }
+      .scrollable-pane::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .scrollable-pane::-webkit-scrollbar-thumb {
+        background-color: #334455;
+        border-radius: 4px;
+      }
+      .scrollable-pane::-webkit-scrollbar-thumb:hover {
+        background-color: #4a6178;
+      }
     </style>
   </head>
   <body>
