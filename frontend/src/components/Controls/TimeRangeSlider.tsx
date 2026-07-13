@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAppStore } from "../../store/useAppStore";
-import { panelStyle } from "../Sidebar/panelStyle";
+import { CollapsibleSection } from "../Sidebar/CollapsibleSection";
 
 function fmt(ms: number) {
   return new Date(ms).toLocaleDateString();
@@ -34,12 +34,7 @@ export function TimeRangeSlider() {
   const [start, end] = timeRange;
 
   return (
-    <div style={{ ...panelStyle, ...styles.wrapper }}>
-      <span style={styles.label}>Time Range</span>
-      <span style={styles.value}>
-        {fmt(start)} – {fmt(end)}
-      </span>
-
+    <CollapsibleSection label="Time Range" summary={`${fmt(start)} – ${fmt(end)}`}>
       <div style={styles.row}>
         <span style={styles.rowLabel}>From</span>
         <input
@@ -66,18 +61,11 @@ export function TimeRangeSlider() {
       <button style={styles.resetBtn} onClick={() => setTimeRange([minMs, maxMs])}>
         Reset
       </button>
-    </div>
+    </CollapsibleSection>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  label: { fontSize: 12, color: "#a0b0c0", letterSpacing: "0.05em", textTransform: "uppercase" },
-  value: { fontSize: 16, fontWeight: 600, color: "#e0f0ff" },
   row: { display: "flex", alignItems: "center", gap: 8 },
   rowLabel: { fontSize: 11, color: "#7090a0", width: 32 },
   range: { flex: 1, accentColor: "#4db8ff", cursor: "pointer" },

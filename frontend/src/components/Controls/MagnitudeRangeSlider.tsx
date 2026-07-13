@@ -1,5 +1,5 @@
 import { useAppStore } from "../../store/useAppStore";
-import { panelStyle } from "../Sidebar/panelStyle";
+import { CollapsibleSection } from "../Sidebar/CollapsibleSection";
 import { MIN_MAG, MAX_MAG } from "../../utils/magnitude";
 
 function fmt(mag: number) {
@@ -13,12 +13,7 @@ export function MagnitudeRangeSlider() {
   const [min, max] = magRange;
 
   return (
-    <div style={{ ...panelStyle, ...styles.wrapper }}>
-      <span style={styles.label}>Magnitude Range</span>
-      <span style={styles.value}>
-        {fmt(min)} – {fmt(max)}
-      </span>
-
+    <CollapsibleSection label="Magnitude Range" summary={`${fmt(min)} – ${fmt(max)}`}>
       <div style={styles.row}>
         <span style={styles.rowLabel}>Min</span>
         <input
@@ -47,18 +42,11 @@ export function MagnitudeRangeSlider() {
       <button style={styles.resetBtn} onClick={() => setMagRange([MIN_MAG, MAX_MAG])}>
         Reset
       </button>
-    </div>
+    </CollapsibleSection>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-  label: { fontSize: 12, color: "#a0b0c0", letterSpacing: "0.05em", textTransform: "uppercase" },
-  value: { fontSize: 16, fontWeight: 600, color: "#e0f0ff" },
   row: { display: "flex", alignItems: "center", gap: 8 },
   rowLabel: { fontSize: 11, color: "#7090a0", width: 32 },
   range: { flex: 1, accentColor: "#4db8ff", cursor: "pointer" },
