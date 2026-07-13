@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "earthquake-tracker-backend"
 version = "1.0.0"
+license = { text = "GPL-3.0-or-later" }
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.111.0",
