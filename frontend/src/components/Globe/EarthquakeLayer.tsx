@@ -208,7 +208,12 @@ function BucketMesh({ quakes, color, fadeDurationMs, onSelect }: BucketMeshProps
     // renders it in the transparent pass after all opaque objects by
     // default — without this, the translucent globe would paint over these
     // markers regardless of actual depth, dimming/tinting them.
-    <instancedMesh ref={meshRef} args={[undefined, undefined, quakes.length]} onClick={handleClick} renderOrder={1}>
+    <instancedMesh
+      ref={meshRef}
+      args={[undefined, undefined, quakes.length]}
+      onClick={handleClick}
+      renderOrder={1}
+    >
       <sphereGeometry args={[1, 12, 8]}>
         <instancedBufferAttribute attach="attributes-occurredAt" args={[occurredAtRelative, 1]} />
       </sphereGeometry>
@@ -277,7 +282,8 @@ export function EarthquakeLayer() {
   const playbackAccumRef = useRef(0);
   const loopPauseRemainingRef = useRef(0);
   useFrame((_, delta) => {
-    const { isPlaying, playbackTime, playbackSpeedDaysPerSec, setPlaybackTime } = useAppStore.getState();
+    const { isPlaying, playbackTime, playbackSpeedDaysPerSec, setPlaybackTime } =
+      useAppStore.getState();
     if (!isPlaying || !timeRange) return;
 
     if (loopPauseRemainingRef.current > 0) {

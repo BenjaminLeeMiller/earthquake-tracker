@@ -68,7 +68,9 @@ export function PlaybackControls() {
         <button style={styles.resetButton} onClick={handleReset} title="Reset to start">
           ⟲
         </button>
-        <span style={styles.value}>{playbackTime !== null ? fmt(playbackTime) : "Not started"}</span>
+        <span style={styles.value}>
+          {playbackTime !== null ? fmt(playbackTime) : "Not started"}
+        </span>
       </div>
       <div style={styles.row}>
         <span style={styles.rowLabel}>Speed</span>

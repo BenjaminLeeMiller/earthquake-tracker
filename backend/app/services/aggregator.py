@@ -1,4 +1,5 @@
 """Rebuild cell_aggregates from earthquakes table."""
+
 from __future__ import annotations
 
 import logging

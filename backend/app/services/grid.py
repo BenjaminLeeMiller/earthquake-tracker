@@ -1,6 +1,7 @@
 """
 Spherical grid math: divides Earth into ~5-mile surface cells per depth layer.
 """
+
 from __future__ import annotations
 
 from math import cos, floor, pi, radians, sin

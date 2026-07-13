@@ -1,5 +1,6 @@
 """Tests for /api/globe routes."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 import pytest
 
@@ -12,10 +13,8 @@ pytestmark = pytest.mark.db
 
 class TestGetEarthquakes:
     async def test_returns_all_unpaginated(self, client, db_session):
-        t = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        db_session.add_all(
-            [Earthquake(id=f"q{i}", magnitude=1.0, occurred_at=t) for i in range(3)]
-        )
+        t = datetime(2024, 1, 1, tzinfo=UTC)
+        db_session.add_all([Earthquake(id=f"q{i}", magnitude=1.0, occurred_at=t) for i in range(3)])
         await db_session.commit()
 
         resp = await client.get("/api/globe/earthquakes")
@@ -30,9 +29,15 @@ class TestGetCells:
         cell = coords_to_cell(35.6, 139.7, 10.0)
         db_session.add(
             Earthquake(
-                id="q1", latitude=35.6, longitude=139.7, depth_km=10.0, magnitude=4.5678,
-                occurred_at=datetime(2024, 1, 1, tzinfo=timezone.utc),
-                depth_layer=cell.depth_layer, lat_band=cell.lat_band, lon_index=cell.lon_index,
+                id="q1",
+                latitude=35.6,
+                longitude=139.7,
+                depth_km=10.0,
+                magnitude=4.5678,
+                occurred_at=datetime(2024, 1, 1, tzinfo=UTC),
+                depth_layer=cell.depth_layer,
+                lat_band=cell.lat_band,
+                lon_index=cell.lon_index,
             )
         )
         await db_session.commit()
@@ -66,19 +71,31 @@ class TestGetCells:
 
 class TestGetStats:
     async def test_stats_reflect_seeded_and_aggregated_data(self, client, db_session):
-        t1 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        t2 = datetime(2024, 6, 1, tzinfo=timezone.utc)
+        t1 = datetime(2024, 1, 1, tzinfo=UTC)
+        t2 = datetime(2024, 6, 1, tzinfo=UTC)
         cell = coords_to_cell(10.0, 20.0, 5.0)
         db_session.add_all(
             [
                 Earthquake(
-                    id="q1", latitude=10.0, longitude=20.0, depth_km=5.0, magnitude=3.0,
-                    occurred_at=t1, depth_layer=cell.depth_layer, lat_band=cell.lat_band,
+                    id="q1",
+                    latitude=10.0,
+                    longitude=20.0,
+                    depth_km=5.0,
+                    magnitude=3.0,
+                    occurred_at=t1,
+                    depth_layer=cell.depth_layer,
+                    lat_band=cell.lat_band,
                     lon_index=cell.lon_index,
                 ),
                 Earthquake(
-                    id="q2", latitude=10.0, longitude=20.0, depth_km=5.0, magnitude=5.0,
-                    occurred_at=t2, depth_layer=cell.depth_layer, lat_band=cell.lat_band,
+                    id="q2",
+                    latitude=10.0,
+                    longitude=20.0,
+                    depth_km=5.0,
+                    magnitude=5.0,
+                    occurred_at=t2,
+                    depth_layer=cell.depth_layer,
+                    lat_band=cell.lat_band,
                     lon_index=cell.lon_index,
                 ),
             ]

@@ -1,8 +1,9 @@
 """Fetch USGS data, upsert into DB, then rebuild cell aggregates."""
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -25,7 +26,7 @@ async def run_initial_load(session: AsyncSession) -> None:
         return
 
     logger.info("Starting initial 30-day backfill …")
-    end = datetime.now(tz=timezone.utc)
+    end = datetime.now(tz=UTC)
     start = end - timedelta(days=settings.FETCH_WINDOW_DAYS)
     await _ingest_window(session, start, end)
 
@@ -33,7 +34,7 @@ async def run_initial_load(session: AsyncSession) -> None:
 async def run_hourly_refresh(session: AsyncSession) -> None:
     """Fetch the last REFRESH_OVERLAP_HOURS to catch revisions."""
     logger.info("Running hourly refresh …")
-    end = datetime.now(tz=timezone.utc)
+    end = datetime.now(tz=UTC)
     start = end - timedelta(hours=settings.REFRESH_OVERLAP_HOURS)
     await _ingest_window(session, start, end)
 

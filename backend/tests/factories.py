@@ -1,4 +1,5 @@
 """Helpers for building synthetic USGS-shaped data in tests."""
+
 from __future__ import annotations
 
 

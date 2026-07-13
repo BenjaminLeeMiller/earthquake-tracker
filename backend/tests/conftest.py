@@ -6,6 +6,7 @@ singletons built at import time. Pytest always imports conftest.py before
 any test module in the same directory, so setting it here — before this
 file's own `from app...` imports below — is sufficient.
 """
+
 import os
 
 os.environ["DATABASE_URL"] = os.environ.get(

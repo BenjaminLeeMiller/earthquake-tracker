@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, LineSegments, Vector3 } from "three";
+import {
+  BufferGeometry,
+  DynamicDrawUsage,
+  Float32BufferAttribute,
+  LineSegments,
+  Vector3,
+} from "three";
 import { latLonToXYZ } from "../../utils/grid";
 import { horizonThreshold, isFacingCamera } from "../../utils/horizon";
 import { useAppStore } from "../../store/useAppStore";

@@ -1,5 +1,6 @@
 """Tests for the USGS FDSN client — pure parsing + respx-mocked HTTP."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -13,8 +14,14 @@ from .factories import make_feature, make_feature_collection
 class TestParseFeature:
     def test_happy_path(self):
         feature = make_feature(
-            id="us70000123", mag=5.2, mag_type="mww", place="Somewhere",
-            lon=140.0, lat=36.0, depth_km=15.0, time_ms=1_700_000_000_000,
+            id="us70000123",
+            mag=5.2,
+            mag_type="mww",
+            place="Somewhere",
+            lon=140.0,
+            lat=36.0,
+            depth_km=15.0,
+            time_ms=1_700_000_000_000,
         )
         parsed = parse_feature(feature)
         assert parsed is not None
@@ -25,7 +32,7 @@ class TestParseFeature:
         assert parsed["magnitude"] == 5.2
         assert parsed["magnitude_type"] == "mww"
         assert parsed["place"] == "Somewhere"
-        assert parsed["occurred_at"] == datetime.fromtimestamp(1_700_000_000, tz=timezone.utc)
+        assert parsed["occurred_at"] == datetime.fromtimestamp(1_700_000_000, tz=UTC)
         assert parsed["raw_properties"]["mag"] == 5.2
 
     def test_id_truncated_to_32_chars(self):
@@ -69,8 +76,8 @@ class TestFetchEarthquakes:
             return_value=httpx.Response(200, json=make_feature_collection(features))
         )
 
-        start = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        end = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 2, tzinfo=UTC)
         result = await fetch_earthquakes(start, end)
 
         assert len(result) == 5
@@ -89,8 +96,8 @@ class TestFetchEarthquakes:
             ]
         )
 
-        start = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        end = datetime(2024, 1, 3, tzinfo=timezone.utc)
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 3, tzinfo=UTC)
         result = await fetch_earthquakes(start, end)
 
         assert usgs_mock.calls.call_count == 3
@@ -99,7 +106,7 @@ class TestFetchEarthquakes:
     async def test_raises_on_http_error(self, usgs_mock):
         usgs_mock.get(settings.USGS_BASE_URL).mock(return_value=httpx.Response(500))
 
-        start = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        end = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 2, tzinfo=UTC)
         with pytest.raises(httpx.HTTPStatusError):
             await fetch_earthquakes(start, end)

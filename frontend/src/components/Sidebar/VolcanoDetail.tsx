@@ -23,7 +23,14 @@ export function VolcanoDetail() {
         overflowY: "auto",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 12,
+        }}
+      >
         <h3 style={{ fontSize: 14, fontWeight: 700, color: "#e0f0ff" }}>Selected Volcano</h3>
         <button
           onClick={() => selectVolcano(null)}
@@ -44,7 +51,10 @@ export function VolcanoDetail() {
       <Row label="Name" value={selected.name} />
       <Row label="Country" value={selected.country} />
       <Row label="Type" value={selected.type ?? "Unknown"} />
-      <Row label="Elevation" value={selected.elevationM !== null ? `${selected.elevationM} m` : "Unknown"} />
+      <Row
+        label="Elevation"
+        value={selected.elevationM !== null ? `${selected.elevationM} m` : "Unknown"}
+      />
       <Row label="Last eruption" value={fmtLastEruption(selected.lastEruptionYear)} />
       <Row label="Tectonic setting" value={selected.tectonicSetting ?? "Unknown"} />
     </div>
@@ -55,7 +65,9 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
       <span style={{ fontSize: 12, color: "#7090a0" }}>{label}</span>
-      <span style={{ fontSize: 12, color: "#c0d8e8", fontWeight: 500, textAlign: "right" }}>{value}</span>
+      <span style={{ fontSize: 12, color: "#c0d8e8", fontWeight: 500, textAlign: "right" }}>
+        {value}
+      </span>
     </div>
   );
 }

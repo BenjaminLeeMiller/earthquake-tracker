@@ -1,8 +1,9 @@
 """USGS FDSN earthquake API client."""
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 
@@ -57,7 +58,7 @@ async def _fetch_recursive(
 
     if count >= USGS_LIMIT:
         # Split the window in half and recurse
-        mid = datetime.fromtimestamp((start.timestamp() + end.timestamp()) / 2, tz=timezone.utc)
+        mid = datetime.fromtimestamp((start.timestamp() + end.timestamp()) / 2, tz=UTC)
         await _fetch_recursive(start, mid, min_magnitude, results)
         await _fetch_recursive(mid, end, min_magnitude, results)
     else:
@@ -81,9 +82,7 @@ def parse_feature(feature: dict) -> dict | None:
         )
 
         time_ms = props.get("time")
-        occurred_at = (
-            datetime.fromtimestamp(time_ms / 1000, tz=timezone.utc) if time_ms else None
-        )
+        occurred_at = datetime.fromtimestamp(time_ms / 1000, tz=UTC) if time_ms else None
 
         return {
             "id": event_id[:32],

@@ -1,15 +1,14 @@
 """Tests for the spherical grid math."""
-import pytest
-from math import cos, radians
+
 from app.services.grid import (
-    CellID,
-    TOTAL_LAT_BANDS,
-    MAX_DEPTH_LAYERS,
-    LAT_DEG_PER_BAND,
     CELL_SIZE_KM,
+    LAT_DEG_PER_BAND,
+    MAX_DEPTH_LAYERS,
+    TOTAL_LAT_BANDS,
+    CellID,
+    cell_center,
     cells_in_lat_band,
     coords_to_cell,
-    cell_center,
     lat_lon_to_xyz,
 )
 
@@ -113,10 +112,12 @@ class TestLatLonToXYZ:
 
     def test_unit_length(self):
         from math import sqrt
+
         x, y, z = lat_lon_to_xyz(45, 90)
         assert abs(sqrt(x**2 + y**2 + z**2) - 1.0) < 1e-10
 
     def test_radius_scaling(self):
         from math import sqrt
+
         x, y, z = lat_lon_to_xyz(30, 60, radius=2.0)
         assert abs(sqrt(x**2 + y**2 + z**2) - 2.0) < 1e-10
