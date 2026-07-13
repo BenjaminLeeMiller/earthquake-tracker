@@ -13,7 +13,11 @@ export function MagnitudeRangeSlider() {
   const [min, max] = magRange;
 
   return (
-    <CollapsibleSection label="Magnitude Range" summary={`${fmt(min)} – ${fmt(max)}`}>
+    <CollapsibleSection
+      id="magnitudeRange"
+      label="Magnitude Range"
+      summary={`${fmt(min)} – ${fmt(max)}`}
+    >
       <div style={styles.row}>
         <span style={styles.rowLabel}>Min</span>
         <input

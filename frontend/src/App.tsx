@@ -6,9 +6,7 @@ import { VolcanoDetail } from "./components/Sidebar/VolcanoDetail";
 import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
 import { MagnitudeRangeSlider } from "./components/Controls/MagnitudeRangeSlider";
 import { PlaybackControls } from "./components/Controls/PlaybackControls";
-import { GlobeOpacityToggle } from "./components/Controls/GlobeOpacityToggle";
-import { FaultLayerToggles } from "./components/Controls/FaultLayerToggles";
-import { VolcanoLayerToggle } from "./components/Controls/VolcanoLayerToggle";
+import { OptionsMenu } from "./components/Controls/OptionsMenu";
 
 export default function App() {
   return (
@@ -56,17 +54,12 @@ export default function App() {
         }}
       >
         <StatsPanel />
-        {/* Selection details sit right below the stats panel — always
-            visible without scrolling, regardless of how many filter
-            sections below are expanded. */}
-        <EarthquakeDetail />
-        <VolcanoDetail />
-        <GlobeOpacityToggle />
-        <FaultLayerToggles />
-        <VolcanoLayerToggle />
+        <OptionsMenu />
         <TimeRangeSlider />
         <MagnitudeRangeSlider />
         <PlaybackControls />
+        <EarthquakeDetail />
+        <VolcanoDetail />
       </div>
     </div>
   );

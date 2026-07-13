@@ -1,22 +1,19 @@
 import { useAppStore } from "../../store/useAppStore";
-import { panelStyle } from "../Sidebar/panelStyle";
 
 export function VolcanoLayerToggle() {
   const volcanoesVisible = useAppStore((s) => s.volcanoesVisible);
   const setVolcanoesVisible = useAppStore((s) => s.setVolcanoesVisible);
 
   return (
-    <div style={panelStyle}>
-      <label style={styles.row}>
-        <input
-          type="checkbox"
-          checked={volcanoesVisible}
-          onChange={(e) => setVolcanoesVisible(e.target.checked)}
-          style={styles.checkbox}
-        />
-        <span style={styles.label}>Volcanoes</span>
-      </label>
-    </div>
+    <label style={styles.row}>
+      <input
+        type="checkbox"
+        checked={volcanoesVisible}
+        onChange={(e) => setVolcanoesVisible(e.target.checked)}
+        style={styles.checkbox}
+      />
+      <span style={styles.label}>Volcanoes</span>
+    </label>
   );
 }
 

@@ -1,22 +1,19 @@
 import { useAppStore } from "../../store/useAppStore";
-import { panelStyle } from "../Sidebar/panelStyle";
 
 export function GlobeOpacityToggle() {
   const translucentGlobe = useAppStore((s) => s.translucentGlobe);
   const setTranslucentGlobe = useAppStore((s) => s.setTranslucentGlobe);
 
   return (
-    <div style={panelStyle}>
-      <label style={styles.row}>
-        <input
-          type="checkbox"
-          checked={translucentGlobe}
-          onChange={(e) => setTranslucentGlobe(e.target.checked)}
-          style={styles.checkbox}
-        />
-        <span style={styles.label}>Translucent Globe</span>
-      </label>
-    </div>
+    <label style={styles.row}>
+      <input
+        type="checkbox"
+        checked={translucentGlobe}
+        onChange={(e) => setTranslucentGlobe(e.target.checked)}
+        style={styles.checkbox}
+      />
+      <span style={styles.label}>Translucent Globe</span>
+    </label>
   );
 }
 

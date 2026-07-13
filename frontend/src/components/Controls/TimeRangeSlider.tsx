@@ -56,7 +56,7 @@ export function TimeRangeSlider() {
   };
 
   return (
-    <CollapsibleSection label="Time Range" summary={`${fmt(start)} – ${fmt(end)}`}>
+    <CollapsibleSection id="timeRange" label="Time Range" summary={`${fmt(start)} – ${fmt(end)}`}>
       <div style={styles.row}>
         <span style={styles.rowLabel}>From</span>
         <input

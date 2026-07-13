@@ -14,6 +14,10 @@ const DEFAULT_MIN_MAGNITUDE = 2.5;
 // more <FaultLines> instance in GlobeCanvas.
 export type FaultLayerKey = "plateBoundaries";
 
+export const FAULT_LAYER_LABELS: Record<FaultLayerKey, string> = {
+  plateBoundaries: "Plate Boundaries",
+};
+
 interface AppState {
   stats: GlobeStats | null;
   selectedEarthquake: EarthquakeOut | null;
@@ -45,6 +49,15 @@ interface AppState {
   refreshing: boolean;
   dataVersion: number;
 
+  // Accordion coordination for the sidebar's collapsible sections (Options,
+  // Time Range, Magnitude Range): at most one is expanded at a time, keyed
+  // by the id each <CollapsibleSection> passes in. null = all collapsed.
+  // Lifted here (rather than each section's own local state) specifically
+  // so expanding one can collapse the others — otherwise every filter left
+  // open at once could push content further down the sidebar than
+  // intended.
+  expandedSection: string | null;
+
   setStats: (stats: GlobeStats) => void;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
   selectVolcano: (v: VolcanoRecord | null) => void;
@@ -58,6 +71,7 @@ interface AppState {
   setPlaybackSpeed: (daysPerSec: number) => void;
   setRefreshing: (refreshing: boolean) => void;
   bumpDataVersion: () => void;
+  setExpandedSection: (id: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -74,6 +88,7 @@ export const useAppStore = create<AppState>((set) => ({
   playbackSpeedDaysPerSec: 1,
   refreshing: false,
   dataVersion: 0,
+  expandedSection: null,
 
   setStats: (stats) => set({ stats }),
   // Earthquake and volcano selection are mutually exclusive — both detail
@@ -108,4 +123,5 @@ export const useAppStore = create<AppState>((set) => ({
   setPlaybackSpeed: (daysPerSec) => set({ playbackSpeedDaysPerSec: daysPerSec }),
   setRefreshing: (refreshing) => set({ refreshing }),
   bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
+  setExpandedSection: (id) => set({ expandedSection: id }),
 }));
