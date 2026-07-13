@@ -3,6 +3,7 @@ import { OrbitControls } from "@react-three/drei";
 import { EarthSphere } from "./EarthSphere";
 import { EarthquakeLayer } from "./EarthquakeLayer";
 import { FaultLines } from "./FaultLines";
+import { SeismicWaveLayer } from "./SeismicWaveLayer";
 import { VolcanoLayer } from "./VolcanoLayer";
 import { useAppStore } from "../../store/useAppStore";
 import { GLOBE_RADIUS } from "../../utils/grid";
@@ -42,6 +43,7 @@ export function GlobeCanvas() {
       <color attach="background" args={["#000408"]} />
       <EarthSphere />
       <EarthquakeLayer />
+      <SeismicWaveLayer />
       {plateBoundariesOn && <FaultLines lines={plateBoundaries as [number, number][][]} />}
       {volcanoesVisible && (
         <VolcanoLayer volcanoes={volcanoes as VolcanoRecord[]} onSelect={selectVolcano} />
