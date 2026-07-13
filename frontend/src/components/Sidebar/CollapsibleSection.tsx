@@ -8,7 +8,7 @@ interface CollapsibleSectionProps {
   // (see expandedSection in useAppStore.ts).
   id: string;
   label: string;
-  summary: ReactNode;
+  summary?: ReactNode;
   children: ReactNode;
 }
 
@@ -26,7 +26,7 @@ export function CollapsibleSection({ id, label, summary, children }: Collapsible
       >
         <div style={styles.headerText}>
           <span style={styles.label}>{label}</span>
-          <span style={styles.value}>{summary}</span>
+          {summary !== undefined && <span style={styles.value}>{summary}</span>}
         </div>
         <span style={styles.chevron}>{expanded ? "▼" : "▶"}</span>
       </button>
