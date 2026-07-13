@@ -5,6 +5,7 @@ import { EarthquakeLayer } from "./EarthquakeLayer";
 import { FaultLines } from "./FaultLines";
 import { VolcanoLayer } from "./VolcanoLayer";
 import { useAppStore } from "../../store/useAppStore";
+import { GLOBE_RADIUS } from "../../utils/grid";
 // Bird (2002) plate boundaries, via github.com/fraxen/tectonicplates
 // (GeoJSON/PB2002_boundaries.json), trimmed to coordinate arrays only.
 import plateBoundaries from "../../assets/plate-boundaries.json";
@@ -12,6 +13,13 @@ import plateBoundaries from "../../assets/plate-boundaries.json";
 // database), via their GeoServer WFS, trimmed to essential fields only.
 import volcanoes from "../../assets/volcanoes.json";
 import type { VolcanoRecord } from "../../types/volcano";
+
+// Camera distance is measured from OrbitControls' target, which defaults
+// to the origin — the same point the globe is centered on (see
+// EarthSphere.tsx). minDistance must stay > GLOBE_RADIUS or the camera
+// could dip beneath the surface; this margin keeps that a deliberate
+// relationship instead of two independent magic numbers.
+const CAMERA_MIN_CLEARANCE = 0.8;
 
 export function GlobeCanvas() {
   const plateBoundariesOn = useAppStore((s) => s.faultLayers.plateBoundaries);
@@ -34,10 +42,10 @@ export function GlobeCanvas() {
       )}
       <OrbitControls
         enablePan={false}
-        minDistance={1.3}
+        minDistance={GLOBE_RADIUS + CAMERA_MIN_CLEARANCE}
         maxDistance={6}
         rotateSpeed={0.5}
-        zoomSpeed={0.8}
+        zoomSpeed={0.4}
       />
     </Canvas>
   );

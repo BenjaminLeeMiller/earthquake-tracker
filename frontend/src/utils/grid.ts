@@ -4,6 +4,12 @@
 const EARTH_RADIUS_MILES = 3959.0;
 export const EARTH_RADIUS_KM = EARTH_RADIUS_MILES * 1.60934; // ≈ 6371 km
 
+// The globe mesh's actual radius (see EarthSphere.tsx's buildGlobeGeometry).
+// Anything constraining camera distance from the globe's center (e.g.
+// OrbitControls' minDistance in GlobeCanvas.tsx) must stay greater than
+// this or the camera could dip beneath the surface.
+export const GLOBE_RADIUS = 1;
+
 /** Convert lat/lon (degrees) to 3D XYZ on a sphere of given radius (Y-up). */
 export function latLonToXYZ(lat: number, lon: number, radius = 1.0): [number, number, number] {
   const φ = (lat * Math.PI) / 180;

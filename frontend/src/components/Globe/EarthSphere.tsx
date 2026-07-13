@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useTexture } from "@react-three/drei";
 import { BackSide, BufferGeometry, Float32BufferAttribute, SRGBColorSpace } from "three";
 import earthMapUrl from "../../assets/earth-map.jpg";
-import { latLonToXYZ } from "../../utils/grid";
+import { GLOBE_RADIUS, latLonToXYZ } from "../../utils/grid";
 import { useAppStore } from "../../store/useAppStore";
 
 const TRANSLUCENT_OPACITY = 0.55;
@@ -30,7 +30,7 @@ function buildGlobeGeometry(): BufferGeometry {
     for (let ix = 0; ix <= LON_STEPS; ix++) {
       const u = ix / LON_STEPS; // 0 at lon=-180 -> 1 at lon=+180
       const lon = -180 + u * 360;
-      const [x, y, z] = latLonToXYZ(lat, lon, 1);
+      const [x, y, z] = latLonToXYZ(lat, lon, GLOBE_RADIUS);
       positions.push(x, y, z);
       uvs.push(u, v);
     }
