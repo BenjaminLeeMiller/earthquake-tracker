@@ -25,9 +25,9 @@ interface AppState {
   // far-side quakes and fault-line segments hidden.
   translucentGlobe: boolean;
   faultLayers: Record<FaultLayerKey, boolean>;
-  // Static volcano-location marker layer — a reference/context layer like
-  // faultLayers, not an opt-in rendering mode like translucentGlobe, so it
-  // defaults on.
+  // Static volcano-location marker layer. Defaults off — dense clusters
+  // (e.g. East African Rift) can visually overwhelm the globe unless
+  // explicitly opted into.
   volcanoesVisible: boolean;
 
   // "Radar loop" replay: sweeps the currently selected timeRange window,
@@ -67,7 +67,7 @@ export const useAppStore = create<AppState>((set) => ({
   magRange: [DEFAULT_MIN_MAGNITUDE, MAX_MAG],
   translucentGlobe: false,
   faultLayers: { plateBoundaries: true },
-  volcanoesVisible: true,
+  volcanoesVisible: false,
   isPlaying: false,
   playbackTime: null,
   playbackSpeedDaysPerSec: 1,
