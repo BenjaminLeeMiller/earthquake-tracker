@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { EarthquakeOut, GlobeStats } from "../api/earthquakes";
 import type { VolcanoRecord } from "../types/volcano";
 import { MAX_MAG } from "../utils/magnitude";
+import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
 
 // Default filter starting points on load (the sliders' own min/max bounds
 // are unaffected — these just narrow the initial view).
@@ -86,8 +87,18 @@ export const useAppStore = create<AppState>((set) => ({
   // Changing either filter mid-replay stops and resets playback rather than
   // letting it keep running against a filter it was never computed for —
   // see handleReset in PlaybackControls.tsx for why null (not timeRange[0])
-  // is the "stopped" playbackTime value.
-  setTimeRange: (range) => set({ timeRange: range, isPlaying: false, playbackTime: null }),
+  // is the "stopped" playbackTime value. setTimeRange also recomputes the
+  // default speed from the new range, so a full sweep takes ~30 seconds
+  // regardless of how wide a window is selected — this fires on every drag
+  // tick of the From/To sliders, not just on commit, so speed always
+  // tracks whatever range is currently selected.
+  setTimeRange: (range) =>
+    set({
+      timeRange: range,
+      isPlaying: false,
+      playbackTime: null,
+      playbackSpeedDaysPerSec: computeDefaultPlaybackSpeed(range[0], range[1]),
+    }),
   setMagRange: (range) => set({ magRange: range, isPlaying: false, playbackTime: null }),
   setTranslucentGlobe: (translucent) => set({ translucentGlobe: translucent }),
   setFaultLayer: (key, value) => set((s) => ({ faultLayers: { ...s.faultLayers, [key]: value } })),
