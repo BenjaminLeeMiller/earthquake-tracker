@@ -43,6 +43,7 @@ export default function App() {
 
       {/* Right sidebar */}
       <div
+        className="scrollable-pane"
         style={{
           width: 300,
           display: "flex",
