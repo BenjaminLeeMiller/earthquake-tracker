@@ -1,0 +1,43 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eq_user
+          POSTGRES_PASSWORD: eq_pass
+          POSTGRES_DB: earthquake_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U eq_user -d earthquake_test_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://eq_user:eq_pass@localhost:5432/earthquake_test_db
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend package with dev extras
+        working-directory: backend
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        working-directory: backend
+        run: pytest -v
