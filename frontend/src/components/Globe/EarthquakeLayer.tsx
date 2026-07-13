@@ -227,10 +227,12 @@ export function EarthquakeLayer() {
   const selectEarthquake = useAppStore((s) => s.selectEarthquake);
   const timeRange = useAppStore((s) => s.timeRange);
   const magRange = useAppStore((s) => s.magRange);
+  const dataVersion = useAppStore((s) => s.dataVersion);
 
   const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
 
-  // Fetch all earthquakes once on mount
+  // Fetch all earthquakes on mount, and again whenever dataVersion bumps
+  // (StatsPanel does this once a manual USGS refresh completes).
   useEffect(() => {
     let cancelled = false;
     fetchAllEarthquakes().then(({ items }) => {
@@ -239,7 +241,7 @@ export function EarthquakeLayer() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dataVersion]);
 
   // Narrow to the user-selected time range and magnitude range (client-side
   // — the full dataset is already fetched, so no refetch is needed while
