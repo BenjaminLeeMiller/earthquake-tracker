@@ -31,6 +31,13 @@ interface AppState {
   playbackTime: number | null; // epoch ms; null = not yet started
   playbackSpeedDaysPerSec: number;
 
+  // True while a manual USGS refresh (triggered from StatsPanel) is in
+  // flight. dataVersion increments once it completes — EarthquakeLayer
+  // depends on it to know when to refetch the full quake list, since its
+  // own mount-only effect has no other way to learn the backend re-ingested.
+  refreshing: boolean;
+  dataVersion: number;
+
   setStats: (stats: GlobeStats) => void;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
   setTimeRange: (range: [number, number]) => void;
@@ -40,6 +47,8 @@ interface AppState {
   setIsPlaying: (playing: boolean) => void;
   setPlaybackTime: (time: number | null) => void;
   setPlaybackSpeed: (daysPerSec: number) => void;
+  setRefreshing: (refreshing: boolean) => void;
+  bumpDataVersion: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -52,6 +61,8 @@ export const useAppStore = create<AppState>((set) => ({
   isPlaying: false,
   playbackTime: null,
   playbackSpeedDaysPerSec: 1,
+  refreshing: false,
+  dataVersion: 0,
 
   setStats: (stats) => set({ stats }),
   selectEarthquake: (eq) => set({ selectedEarthquake: eq }),
@@ -62,4 +73,6 @@ export const useAppStore = create<AppState>((set) => ({
   setIsPlaying: (playing) => set({ isPlaying: playing }),
   setPlaybackTime: (time) => set({ playbackTime: time }),
   setPlaybackSpeed: (daysPerSec) => set({ playbackSpeedDaysPerSec: daysPerSec }),
+  setRefreshing: (refreshing) => set({ refreshing }),
+  bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
 }));

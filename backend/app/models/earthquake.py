@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Index, SmallInteger, String, Text
+from sqlalchemy import Index, SmallInteger, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,7 +24,7 @@ class Earthquake(Base):
     lon_index: Mapped[int | None] = mapped_column(SmallInteger)
     raw_properties: Mapped[dict | None] = mapped_column(JSONB)
     fetched_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), server_default="now()"
+        TIMESTAMP(timezone=True), server_default=func.now()
     )
 
     __table_args__ = (
