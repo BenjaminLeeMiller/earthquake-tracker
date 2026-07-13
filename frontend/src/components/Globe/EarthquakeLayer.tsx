@@ -18,7 +18,7 @@ const SURFACE_RADIUS = 1.002;
 const dummy = new Object3D();
 const cameraDir = new Vector3();
 
-// Radar-loop replay: reaching the end of the selected time range holds the
+// Time-lapse replay: reaching the end of the selected time range holds the
 // fully-revealed state for a few seconds (so it registers) before looping
 // back to the start and continuing to play.
 const LOOP_PAUSE_SECONDS = 3;
@@ -269,7 +269,7 @@ export function EarthquakeLayer() {
     return groups;
   }, [filtered]);
 
-  // Radar-loop clock: advances playbackTime from timeRange[0] to
+  // Time-lapse clock: advances playbackTime from timeRange[0] to
   // timeRange[1] while isPlaying, throttled to ~10Hz store commits. Lives
   // here (once), not per-bucket, so the clock only advances once rather
   // than once per magnitude bucket. Holds at the end for LOOP_PAUSE_SECONDS
