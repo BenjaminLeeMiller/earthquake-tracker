@@ -12,18 +12,35 @@ function normalizedMag(mag: number | null): number {
   return (clampedMag(mag) - MIN_MAG) / (MAX_MAG - MIN_MAG);
 }
 
-// Heat-map endpoints: light beige (small quakes) -> dark red (large quakes).
-const COLOR_LOW: [number, number, number] = [245, 230, 200];
-const COLOR_HIGH: [number, number, number] = [139, 0, 0];
+// Multi-hue heat-map stops: pale yellow (small quakes) -> amber -> orange-red
+// -> red -> dark maroon (large quakes). A single-hue ramp (e.g. beige->dark
+// red) only varies in shade, which the eye struggles to tell apart in small
+// steps; shifting hue between stops as magnitude increases makes adjacent
+// whole-number magnitudes visually distinct at a glance, not just "a bit
+// darker." Interpolated piecewise-linearly between consecutive stops.
+const COLOR_STOPS: [number, number, number][] = [
+  [255, 241, 150], // t=0.00 — pale yellow
+  [255, 176, 59], // t=0.25 — amber
+  [237, 106, 43], // t=0.50 — orange-red
+  [198, 40, 40], // t=0.75 — red
+  [105, 0, 0], // t=1.00 — dark maroon
+];
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
 function colorAt(t: number): string {
-  const r = Math.round(lerp(COLOR_LOW[0], COLOR_HIGH[0], t));
-  const g = Math.round(lerp(COLOR_LOW[1], COLOR_HIGH[1], t));
-  const b = Math.round(lerp(COLOR_LOW[2], COLOR_HIGH[2], t));
+  const clamped = Math.max(0, Math.min(1, t));
+  const segments = COLOR_STOPS.length - 1;
+  const scaled = clamped * segments;
+  const i = Math.min(segments - 1, Math.floor(scaled));
+  const localT = scaled - i;
+  const [r1, g1, b1] = COLOR_STOPS[i];
+  const [r2, g2, b2] = COLOR_STOPS[i + 1];
+  const r = Math.round(lerp(r1, r2, localT));
+  const g = Math.round(lerp(g1, g2, localT));
+  const b = Math.round(lerp(b1, b2, localT));
   return `rgb(${r}, ${g}, ${b})`;
 }
 
@@ -60,8 +77,9 @@ export function magBucketIndex(mag: number | null): number {
   return Math.min(MAG_BUCKET_COUNT - 1, Math.floor(clampedMag(mag)));
 }
 
-// Bucket 0 anchors exactly to COLOR_LOW and the last bucket exactly to
-// COLOR_HIGH, with every whole-number magnitude in between evenly stepped.
+// Bucket 0 anchors exactly to the first color stop and the last bucket
+// exactly to the last stop, with every whole-number magnitude in between
+// evenly stepped across the multi-hue gradient.
 export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) =>
   colorAt(i / (MAG_BUCKET_COUNT - 1))
 );

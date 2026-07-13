@@ -15,12 +15,12 @@ describe("magColor", () => {
     expect(magColor(null)).toBe(magColor(MIN_MAG));
   });
 
-  it("MIN_MAG gives the exact low color", () => {
-    expect(magColor(MIN_MAG)).toBe("rgb(245, 230, 200)");
+  it("MIN_MAG gives the exact low (pale yellow) color", () => {
+    expect(magColor(MIN_MAG)).toBe("rgb(255, 241, 150)");
   });
 
-  it("MAX_MAG gives the exact high (dark red) color", () => {
-    expect(magColor(MAX_MAG)).toBe("rgb(139, 0, 0)");
+  it("MAX_MAG gives the exact high (dark maroon) color", () => {
+    expect(magColor(MAX_MAG)).toBe("rgb(105, 0, 0)");
   });
 
   it("clamps below MIN_MAG instead of extrapolating", () => {
@@ -39,19 +39,30 @@ describe("magColor", () => {
     }
   });
 
-  it("is linear — magnitude 1→2 and 9→10 shift color by about the same amount", () => {
-    // "About" because rounding each channel to an integer at every whole
-    // step can shift an individual step by 1, but not more.
+  it("every consecutive whole-number magnitude is perceptually well-separated, not just technically different", () => {
+    // Regression guard for "quakes blending together": a multi-hue gradient
+    // should keep every adjacent step's Euclidean RGB distance comfortably
+    // above a "just barely different" threshold.
     const parse = (c: string) => c.match(/\d+/g)!.map(Number);
-    const diffAt = (a: number, b: number) => {
+    const distance = (a: number, b: number) => {
       const [r1, g1, b1] = parse(magColor(a));
       const [r2, g2, b2] = parse(magColor(b));
-      return [r2 - r1, g2 - g1, b2 - b1];
+      return Math.sqrt((r2 - r1) ** 2 + (g2 - g1) ** 2 + (b2 - b1) ** 2);
     };
-    const [d1, d2] = [diffAt(1, 2), diffAt(9, 10)];
-    for (let i = 0; i < 3; i++) {
-      expect(Math.abs(d1[i] - d2[i])).toBeLessThanOrEqual(1);
+    for (let m = MIN_MAG; m < MAX_MAG; m++) {
+      expect(distance(m, m + 1)).toBeGreaterThan(20);
     }
+  });
+
+  it("shifts hue (not just shade) across the range — high-magnitude red isn't just a darker low-magnitude yellow", () => {
+    const parse = (c: string) => c.match(/\d+/g)!.map(Number);
+    const [rLow, gLow] = parse(magColor(MIN_MAG));
+    const [rHigh, gHigh] = parse(magColor(MAX_MAG));
+    // A pure shade change would keep the same ratio between channels; a hue
+    // change does not. Green drops much faster than red here (yellow has
+    // roughly equal R/G; deep red has far more R than G), so the two ratios
+    // should differ substantially.
+    expect(gLow / rLow).toBeGreaterThan(gHigh / rHigh + 0.3);
   });
 });
 
@@ -116,8 +127,8 @@ describe("MAG_BUCKET_COLORS", () => {
   });
 
   it("the first bucket is exactly the low color and the last is exactly the high color", () => {
-    expect(MAG_BUCKET_COLORS[0]).toBe("rgb(245, 230, 200)");
-    expect(MAG_BUCKET_COLORS[MAG_BUCKET_COUNT - 1]).toBe("rgb(139, 0, 0)");
+    expect(MAG_BUCKET_COLORS[0]).toBe("rgb(255, 241, 150)");
+    expect(MAG_BUCKET_COLORS[MAG_BUCKET_COUNT - 1]).toBe("rgb(105, 0, 0)");
   });
 
   it("every bucket has a distinct color from its neighbors", () => {
