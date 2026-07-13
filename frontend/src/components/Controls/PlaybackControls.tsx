@@ -5,6 +5,28 @@ function fmt(ms: number) {
   return new Date(ms).toLocaleString();
 }
 
+const MINUTES_PER_DAY = 1440;
+const MIN_SPEED = 1 / MINUTES_PER_DAY; // 1 minute of simulated time per second
+const MAX_SPEED = 14;
+const SLIDER_MAX = 1000; // internal slider resolution, not a displayed value
+
+function speedToSlider(speed: number): number {
+  const clamped = Math.min(Math.max(speed, MIN_SPEED), MAX_SPEED);
+  return Math.round((Math.log(clamped / MIN_SPEED) / Math.log(MAX_SPEED / MIN_SPEED)) * SLIDER_MAX);
+}
+
+function sliderToSpeed(pos: number): number {
+  return MIN_SPEED * Math.pow(MAX_SPEED / MIN_SPEED, pos / SLIDER_MAX);
+}
+
+function formatSpeed(daysPerSec: number): string {
+  const minutesPerSec = daysPerSec * MINUTES_PER_DAY;
+  if (minutesPerSec < 60) return `${minutesPerSec.toFixed(1)} min/sec`;
+  const hoursPerSec = daysPerSec * 24;
+  if (hoursPerSec < 24) return `${hoursPerSec.toFixed(1)} hrs/sec`;
+  return `${daysPerSec.toFixed(1)} days/sec`;
+}
+
 export function PlaybackControls() {
   const timeRange = useAppStore((s) => s.timeRange);
   const isPlaying = useAppStore((s) => s.isPlaying);
@@ -52,15 +74,15 @@ export function PlaybackControls() {
         <span style={styles.rowLabel}>Speed</span>
         <input
           type="range"
-          min={0.25}
-          max={14}
-          step={0.25}
-          value={playbackSpeedDaysPerSec}
-          onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+          min={0}
+          max={SLIDER_MAX}
+          step={1}
+          value={speedToSlider(playbackSpeedDaysPerSec)}
+          onChange={(e) => setPlaybackSpeed(sliderToSpeed(Number(e.target.value)))}
           style={styles.range}
         />
       </div>
-      <span style={styles.speedLabel}>{playbackSpeedDaysPerSec.toFixed(2)} days/sec</span>
+      <span style={styles.speedLabel}>{formatSpeed(playbackSpeedDaysPerSec)}</span>
     </div>
   );
 }
