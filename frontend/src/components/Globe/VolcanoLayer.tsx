@@ -102,7 +102,7 @@ export function VolcanoLayer({ volcanoes, onSelect }: VolcanoLayerProps) {
       renderOrder={1}
     >
       <coneGeometry args={[CONE_RADIUS, CONE_HEIGHT, 8]} />
-      <meshBasicMaterial color="#8b0000" transparent />
+      <meshBasicMaterial color="#8b5a2b" transparent />
     </instancedMesh>
   );
 }
