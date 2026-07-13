@@ -13,6 +13,10 @@ export default defineConfig({
     },
   },
   test: {
-    environment: "node", // pure logic + the zustand store, no component rendering
+    // Default: pure logic + the zustand store, no DOM needed. Component
+    // tests opt into jsdom individually via a `// @vitest-environment
+    // jsdom` docblock at the top of the file, so those stay fast.
+    environment: "node",
+    setupFiles: ["./src/test/setup.ts"],
   },
 });
