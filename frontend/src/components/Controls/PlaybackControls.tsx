@@ -1,13 +1,12 @@
 import { useAppStore } from "../../store/useAppStore";
 import { panelStyle } from "../Sidebar/panelStyle";
+import { MIN_SPEED, MAX_SPEED } from "../../utils/playbackSpeed";
 
 function fmt(ms: number) {
   return new Date(ms).toLocaleString();
 }
 
 const MINUTES_PER_DAY = 1440;
-const MIN_SPEED = 1 / MINUTES_PER_DAY; // 1 minute of simulated time per second
-const MAX_SPEED = 14;
 const SLIDER_MAX = 1000; // internal slider resolution, not a displayed value
 
 function speedToSlider(speed: number): number {

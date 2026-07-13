@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { useAppStore } from "./useAppStore";
 import type { EarthquakeOut } from "../api/earthquakes";
 import type { VolcanoRecord } from "../types/volcano";
+import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
 
 const INITIAL_STATE = useAppStore.getState();
 
@@ -91,6 +92,18 @@ describe("filter changes reset replay", () => {
     expect(state.timeRange).toEqual([0, 100]);
     expect(state.isPlaying).toBe(false);
     expect(state.playbackTime).toBeNull();
+  });
+
+  it("setTimeRange recomputes playbackSpeedDaysPerSec for a ~30-second sweep of the new range", () => {
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    useAppStore.setState({ playbackSpeedDaysPerSec: 999 }); // arbitrary prior value
+
+    useAppStore.getState().setTimeRange([0, 14 * DAY_MS]);
+
+    expect(useAppStore.getState().playbackSpeedDaysPerSec).toBeCloseTo(
+      computeDefaultPlaybackSpeed(0, 14 * DAY_MS),
+      10
+    );
   });
 
   it("setMagRange stops playback and clears playbackTime", () => {
