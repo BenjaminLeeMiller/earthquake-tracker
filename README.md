@@ -133,3 +133,7 @@ All routes are prefixed with `/api`:
 - `GET /globe/stats` — total count, date range, active layers, last-refreshed time
 - `GET /cells/{layer}/{lat_band}/{lon_index}` — earthquakes within one grid cell
 - `GET /health` — health check
+
+## License
+
+Licensed under the [GNU General Public License v3.0](LICENSE) or later.
