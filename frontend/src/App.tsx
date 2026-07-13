@@ -19,8 +19,11 @@ export default function App() {
         background: "#000408",
       }}
     >
-      {/* Globe canvas — takes remaining space */}
-      <div style={{ flex: 1, position: "relative" }}>
+      {/* Globe canvas — takes remaining space. minWidth: 0 overrides the
+          flex item default of min-width: auto, which would otherwise stop
+          this from shrinking below its content's intrinsic size and force
+          the sidebar to shrink instead when the window narrows. */}
+      <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
         <Suspense
           fallback={
             <div
@@ -41,11 +44,14 @@ export default function App() {
         </Suspense>
       </div>
 
-      {/* Right sidebar */}
+      {/* Right sidebar — flexShrink: 0 keeps this pinned at 300px even as
+          the window narrows, so it's the globe (which can shrink freely)
+          that gives up space, not the sidebar getting squeezed off screen. */}
       <div
         className="scrollable-pane"
         style={{
           width: 300,
+          flexShrink: 0,
           display: "flex",
           flexDirection: "column",
           gap: 0,
