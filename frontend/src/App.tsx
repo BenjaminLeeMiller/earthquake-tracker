@@ -56,14 +56,17 @@ export default function App() {
         }}
       >
         <StatsPanel />
+        {/* Selection details sit right below the stats panel — always
+            visible without scrolling, regardless of how many filter
+            sections below are expanded. */}
+        <EarthquakeDetail />
+        <VolcanoDetail />
         <GlobeOpacityToggle />
         <FaultLayerToggles />
         <VolcanoLayerToggle />
         <TimeRangeSlider />
         <MagnitudeRangeSlider />
         <PlaybackControls />
-        <EarthquakeDetail />
-        <VolcanoDetail />
       </div>
     </div>
   );
