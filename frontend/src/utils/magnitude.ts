@@ -1,64 +1,70 @@
 export const MIN_MAG = 0;
 export const MAX_MAG = 10;
-const CURVE = 1.6;
 
-function normalizedMag(mag: number | null): number {
-  const m = Math.max(MIN_MAG, Math.min(MAX_MAG, mag ?? MIN_MAG));
-  return Math.pow((m - MIN_MAG) / (MAX_MAG - MIN_MAG), CURVE);
+function clampedMag(mag: number | null): number {
+  return Math.max(MIN_MAG, Math.min(MAX_MAG, mag ?? MIN_MAG));
 }
 
-// Heat-map endpoints: light beige (small quakes) -> burnt orange (large quakes).
+// Linear (not curved) so every whole-number magnitude step gets a visually
+// distinguishable color, including at the low end — a curved mapping here
+// previously compressed most small quakes into nearly the same color.
+function normalizedMag(mag: number | null): number {
+  return (clampedMag(mag) - MIN_MAG) / (MAX_MAG - MIN_MAG);
+}
+
+// Heat-map endpoints: light beige (small quakes) -> dark red (large quakes).
 const COLOR_LOW: [number, number, number] = [245, 230, 200];
-const COLOR_HIGH: [number, number, number] = [191, 78, 28];
+const COLOR_HIGH: [number, number, number] = [139, 0, 0];
 
 function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-/** Canonical magnitude→color mapping, shared by sidebar cards and globe markers. */
-export function magColor(mag: number | null): string {
-  const t = normalizedMag(mag);
+function colorAt(t: number): string {
   const r = Math.round(lerp(COLOR_LOW[0], COLOR_HIGH[0], t));
   const g = Math.round(lerp(COLOR_LOW[1], COLOR_HIGH[1], t));
   const b = Math.round(lerp(COLOR_LOW[2], COLOR_HIGH[2], t));
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** Canonical magnitude→color mapping, shared by sidebar cards and globe markers. */
+export function magColor(mag: number | null): string {
+  return colorAt(normalizedMag(mag));
 }
 
 /** Magnitude→sphere radius (world units; base sphereGeometry radius is 1). */
 const MIN_R = 0.001;
 const MAX_R = 0.05;
-// Steeper than the color curve (CURVE) so small quakes shrink further
-// relative to the max, without affecting the color gradient.
+// Steeper than a linear falloff so small quakes shrink further relative to
+// the max, independent of the (now-linear) color gradient.
 const RADIUS_CURVE = 2.6;
 
 export function magRadius(mag: number | null): number {
-  const m = Math.max(MIN_MAG, Math.min(MAX_MAG, mag ?? MIN_MAG));
-  const t = Math.pow((m - MIN_MAG) / (MAX_MAG - MIN_MAG), RADIUS_CURVE);
+  const t = Math.pow(normalizedMag(mag), RADIUS_CURVE);
   return MIN_R + t * (MAX_R - MIN_R);
 }
 
 /**
- * Discrete magnitude buckets for the globe markers. Per-instance vertex
- * colors on InstancedMesh render solid black in this app's three.js/R3F
- * setup (reproducible regardless of color value, tone mapping, or color
- * space — confirmed via isolated testing), so each bucket gets its own
- * InstancedMesh with a uniform material color instead. Marker size still
- * varies continuously via magRadius.
+ * Discrete magnitude buckets for the globe markers — one bucket per
+ * whole-number magnitude (0 through MAX_MAG), so even low-magnitude quakes
+ * get visually distinguishable colors instead of clustering together.
+ * Per-instance vertex colors on InstancedMesh render solid black in this
+ * app's three.js/R3F setup (reproducible regardless of color value, tone
+ * mapping, or color space — confirmed via isolated testing), so each
+ * bucket gets its own InstancedMesh with a uniform material color instead.
+ * Marker size still varies continuously via magRadius.
  */
-export const MAG_BUCKET_COUNT = 14;
+export const MAG_BUCKET_COUNT = MAX_MAG - MIN_MAG + 1; // 11: one per whole-number magnitude 0–10
 
 export function magBucketIndex(mag: number | null): number {
-  const t = normalizedMag(mag);
-  return Math.min(MAG_BUCKET_COUNT - 1, Math.floor(t * MAG_BUCKET_COUNT));
+  return Math.min(MAG_BUCKET_COUNT - 1, Math.floor(clampedMag(mag)));
 }
 
-export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) => {
-  const t = (i + 0.5) / MAG_BUCKET_COUNT;
-  const r = Math.round(lerp(COLOR_LOW[0], COLOR_HIGH[0], t));
-  const g = Math.round(lerp(COLOR_LOW[1], COLOR_HIGH[1], t));
-  const b = Math.round(lerp(COLOR_LOW[2], COLOR_HIGH[2], t));
-  return `rgb(${r}, ${g}, ${b})`;
-});
+// Bucket 0 anchors exactly to COLOR_LOW and the last bucket exactly to
+// COLOR_HIGH, with every whole-number magnitude in between evenly stepped.
+export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) =>
+  colorAt(i / (MAG_BUCKET_COUNT - 1))
+);
 
 // Replay fade-out duration per magnitude bucket: weaker quakes fade within
 // hours, the strongest linger for a few days — bigger quakes stay visually

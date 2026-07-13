@@ -19,8 +19,8 @@ describe("magColor", () => {
     expect(magColor(MIN_MAG)).toBe("rgb(245, 230, 200)");
   });
 
-  it("MAX_MAG gives the exact high color", () => {
-    expect(magColor(MAX_MAG)).toBe("rgb(191, 78, 28)");
+  it("MAX_MAG gives the exact high (dark red) color", () => {
+    expect(magColor(MAX_MAG)).toBe("rgb(139, 0, 0)");
   });
 
   it("clamps below MIN_MAG instead of extrapolating", () => {
@@ -29,6 +29,29 @@ describe("magColor", () => {
 
   it("clamps above MAX_MAG instead of extrapolating", () => {
     expect(magColor(100)).toBe(magColor(MAX_MAG));
+  });
+
+  it("every consecutive whole-number magnitude gets a distinguishable color", () => {
+    // Regression guard for the low-end-compression bug: a curved mapping
+    // used to cluster small quakes into nearly the same color.
+    for (let m = MIN_MAG; m < MAX_MAG; m++) {
+      expect(magColor(m)).not.toBe(magColor(m + 1));
+    }
+  });
+
+  it("is linear — magnitude 1→2 and 9→10 shift color by about the same amount", () => {
+    // "About" because rounding each channel to an integer at every whole
+    // step can shift an individual step by 1, but not more.
+    const parse = (c: string) => c.match(/\d+/g)!.map(Number);
+    const diffAt = (a: number, b: number) => {
+      const [r1, g1, b1] = parse(magColor(a));
+      const [r2, g2, b2] = parse(magColor(b));
+      return [r2 - r1, g2 - g1, b2 - b1];
+    };
+    const [d1, d2] = [diffAt(1, 2), diffAt(9, 10)];
+    for (let i = 0; i < 3; i++) {
+      expect(Math.abs(d1[i] - d2[i])).toBeLessThanOrEqual(1);
+    }
   });
 });
 
@@ -63,6 +86,22 @@ describe("magBucketIndex", () => {
     expect(magBucketIndex(-50)).toBeGreaterThanOrEqual(0);
     expect(magBucketIndex(1000)).toBeLessThan(MAG_BUCKET_COUNT);
   });
+
+  it("has exactly one bucket per whole-number magnitude", () => {
+    expect(MAG_BUCKET_COUNT).toBe(MAX_MAG - MIN_MAG + 1);
+  });
+
+  it("assigns each whole-number magnitude to its own distinct bucket", () => {
+    for (let m = MIN_MAG; m <= MAX_MAG; m++) {
+      expect(magBucketIndex(m)).toBe(m);
+    }
+  });
+
+  it("groups fractional magnitudes into the whole-number bucket below them", () => {
+    expect(magBucketIndex(3.4)).toBe(3);
+    expect(magBucketIndex(3.99)).toBe(3);
+    expect(magBucketIndex(4.0)).toBe(4);
+  });
 });
 
 describe("MAG_BUCKET_COLORS", () => {
@@ -73,6 +112,17 @@ describe("MAG_BUCKET_COLORS", () => {
   it("every entry is a valid rgb() string", () => {
     for (const color of MAG_BUCKET_COLORS) {
       expect(color).toMatch(/^rgb\(\d+, \d+, \d+\)$/);
+    }
+  });
+
+  it("the first bucket is exactly the low color and the last is exactly the high color", () => {
+    expect(MAG_BUCKET_COLORS[0]).toBe("rgb(245, 230, 200)");
+    expect(MAG_BUCKET_COLORS[MAG_BUCKET_COUNT - 1]).toBe("rgb(139, 0, 0)");
+  });
+
+  it("every bucket has a distinct color from its neighbors", () => {
+    for (let i = 0; i < MAG_BUCKET_COLORS.length - 1; i++) {
+      expect(MAG_BUCKET_COLORS[i]).not.toBe(MAG_BUCKET_COLORS[i + 1]);
     }
   });
 });
