@@ -89,6 +89,27 @@ Environment variables (see `.env.example`), read by the backend from `.env`:
 | `REFRESH_OVERLAP_HOURS` | `25` | Hourly refresh look-back window |
 | `LOG_LEVEL` | `INFO` | Backend log level |
 
+## Development
+
+**Tests** — `cd backend && pytest` (needs a Postgres instance; see
+`backend/tests/conftest.py`) / `cd frontend && npm test`.
+
+**Linting and formatting** — Ruff (backend), ESLint + Prettier (frontend):
+
+```bash
+cd backend && ruff check . && ruff format --check .
+cd frontend && npm run lint && npm run format:check
+```
+
+Both are enforced in CI (`.github/workflows/backend-tests.yml`,
+`frontend-tests.yml`) and via a git pre-commit hook. To enable the hook
+locally, one-time setup:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 ## API
 
 All routes are prefixed with `/api`:

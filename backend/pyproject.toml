@@ -22,6 +22,7 @@ dev = [
     "pytest-asyncio>=0.23.0",
     "anyio>=4.4.0",
     "respx>=0.21.1",
+    "ruff>=0.6.0",
 ]
 
 [tool.pytest.ini_options]
@@ -32,6 +33,20 @@ testpaths = ["tests"]
 markers = [
     "db: marks tests that require a running Postgres test database",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection pattern (`= Depends(...)`, `= Query(...)`)
+# calls a function in an argument default on purpose — B008 exists to catch
+# accidental mutable-default bugs, not this idiom.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
