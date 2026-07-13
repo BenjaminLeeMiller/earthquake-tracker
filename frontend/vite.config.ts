@@ -12,4 +12,7 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    environment: "node", // pure logic + the zustand store, no component rendering
+  },
 });
