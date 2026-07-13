@@ -18,8 +18,8 @@ interface AppState {
   timeRange: [number, number] | null;
   magRange: [number, number];
   // Governs three things together: globe opacity, far-side quake
-  // visibility, and far-side fault-line visibility. Checked (default):
-  // translucent globe, everything visible. Unchecked: opaque globe,
+  // visibility, and far-side fault-line visibility. Checked: translucent
+  // globe, everything visible. Unchecked (default): opaque globe,
   // far-side quakes and fault-line segments hidden.
   translucentGlobe: boolean;
   faultLayers: Record<FaultLayerKey, boolean>;
@@ -56,7 +56,7 @@ export const useAppStore = create<AppState>((set) => ({
   selectedEarthquake: null,
   timeRange: null,
   magRange: [DEFAULT_MIN_MAGNITUDE, MAX_MAG],
-  translucentGlobe: true,
+  translucentGlobe: false,
   faultLayers: { plateBoundaries: true },
   isPlaying: false,
   playbackTime: null,
