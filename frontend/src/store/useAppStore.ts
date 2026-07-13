@@ -30,7 +30,7 @@ interface AppState {
   // explicitly opted into.
   volcanoesVisible: boolean;
 
-  // "Radar loop" replay: sweeps the currently selected timeRange window,
+  // Time-lapse replay: sweeps the currently selected timeRange window,
   // revealing quakes at full opacity as the clock passes their occurred_at,
   // then fading them out (see MAG_BUCKET_FADE_DURATIONS_MS in magnitude.ts).
   isPlaying: boolean;
