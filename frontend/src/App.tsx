@@ -2,11 +2,13 @@ import { Suspense } from "react";
 import { GlobeCanvas } from "./components/Globe/GlobeCanvas";
 import { StatsPanel } from "./components/Sidebar/StatsPanel";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
+import { VolcanoDetail } from "./components/Sidebar/VolcanoDetail";
 import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
 import { MagnitudeRangeSlider } from "./components/Controls/MagnitudeRangeSlider";
 import { PlaybackControls } from "./components/Controls/PlaybackControls";
 import { GlobeOpacityToggle } from "./components/Controls/GlobeOpacityToggle";
 import { FaultLayerToggles } from "./components/Controls/FaultLayerToggles";
+import { VolcanoLayerToggle } from "./components/Controls/VolcanoLayerToggle";
 
 export default function App() {
   return (
@@ -56,10 +58,12 @@ export default function App() {
         <StatsPanel />
         <GlobeOpacityToggle />
         <FaultLayerToggles />
+        <VolcanoLayerToggle />
         <TimeRangeSlider />
         <MagnitudeRangeSlider />
         <PlaybackControls />
         <EarthquakeDetail />
+        <VolcanoDetail />
       </div>
     </div>
   );
