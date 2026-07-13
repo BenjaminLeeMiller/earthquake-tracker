@@ -15,10 +15,22 @@ mode.
   constant on-screen size regardless of zoom, with click-through details
   (type, elevation, last eruption, tectonic setting).
 - **Time range** and **magnitude range** filters (collapsible sidebar
-  controls) applied live to the globe.
+  controls) applied live to the globe. Time range can be set by dragging
+  the From/To sliders or by typing an exact date and time into the
+  accompanying date/time inputs — handy for narrowing in on a specific
+  window.
 - **Time-lapse replay** — sweeps the selected time range, revealing quakes
-  as the clock passes their occurrence time and fading them out, with
-  adjustable log-scale playback speed.
+  as the clock passes their occurrence time and fading them out. Default
+  playback speed auto-scales to sweep the selected range in ~30 seconds
+  (clamped to a sane min/max), with a manual log-scale override slider and
+  per-time-slice quake-count / max-magnitude histograms (with a moving
+  progress line) shown under the controls.
+- **P-wave propagation rings** — during replay, each earthquake's
+  compression wave expands outward from its epicenter at realistic
+  wave-speed, attenuating below a measurable intensity per real seismology
+  (MMI attenuation). Only shown when the selected time range is narrow
+  enough (~30 minutes or less) that replay runs slowly enough for the
+  wave's real-world speed to be visible.
 - **Manual refresh** button to pull the latest data from USGS on demand, in
   addition to an automatic hourly refresh.
 
@@ -51,7 +63,7 @@ backend/
 frontend/
   src/
     components/
-      Globe/       # Canvas, EarthSphere, EarthquakeLayer, FaultLines, VolcanoLayer
+      Globe/       # Canvas, EarthSphere, EarthquakeLayer, FaultLines, VolcanoLayer, SeismicWaveLayer
       Controls/    # Sidebar filter/toggle controls
       Sidebar/     # Stats panel, detail panels, shared layout primitives
     store/         # Zustand app state
