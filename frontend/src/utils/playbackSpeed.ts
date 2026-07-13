@@ -1,7 +1,7 @@
 export const MIN_SPEED = 1 / 1440; // 1 minute of simulated time per second
 export const MAX_SPEED = 14;
 
-export const TARGET_DURATION_SECONDS = 30;
+const TARGET_DURATION_SECONDS = 30;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /**
