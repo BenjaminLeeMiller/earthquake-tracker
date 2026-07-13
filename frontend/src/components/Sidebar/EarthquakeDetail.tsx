@@ -18,7 +18,14 @@ export function EarthquakeDetail() {
         overflowY: "auto",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: 12,
+        }}
+      >
         <h3 style={{ fontSize: 14, fontWeight: 700, color: "#e0f0ff" }}>Selected Earthquake</h3>
         <button
           onClick={() => selectEarthquake(null)}

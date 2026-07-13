@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { CollapsibleSection } from "../Sidebar/CollapsibleSection";
 
@@ -13,10 +13,15 @@ export function TimeRangeSlider() {
   const timeRange = useAppStore((s) => s.timeRange);
   const setTimeRange = useAppStore((s) => s.setTimeRange);
 
-  const bounds =
-    stats?.earliest && stats?.latest
-      ? ([new Date(stats.earliest).getTime(), new Date(stats.latest).getTime()] as const)
-      : null;
+  const earliest = stats?.earliest;
+  const latest = stats?.latest;
+  const bounds = useMemo(
+    () =>
+      earliest && latest
+        ? ([new Date(earliest).getTime(), new Date(latest).getTime()] as const)
+        : null,
+    [earliest, latest]
+  );
 
   useEffect(() => {
     if (bounds && !timeRange) {

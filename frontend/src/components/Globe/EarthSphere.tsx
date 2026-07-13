@@ -90,7 +90,13 @@ export function EarthSphere() {
           1 — markers must still always draw on top of both globe layers. */}
       {translucentGlobe && (
         <mesh geometry={geometry} renderOrder={-1}>
-          <meshBasicMaterial map={texture} transparent opacity={opacity} depthWrite={false} side={BackSide} />
+          <meshBasicMaterial
+            map={texture}
+            transparent
+            opacity={opacity}
+            depthWrite={false}
+            side={BackSide}
+          />
         </mesh>
       )}
       <mesh geometry={geometry} renderOrder={0}>

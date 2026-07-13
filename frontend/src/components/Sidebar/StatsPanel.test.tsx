@@ -43,7 +43,9 @@ describe("StatsPanel", () => {
     await screen.findByText("11,047");
 
     const updatedStats: GlobeStats = { ...STATS, last_fetched: "2024-02-01T13:00:00Z" };
-    const triggerRefresh = vi.spyOn(api, "triggerRefresh").mockResolvedValue({ status: "refresh started" });
+    const triggerRefresh = vi
+      .spyOn(api, "triggerRefresh")
+      .mockResolvedValue({ status: "refresh started" });
     vi.spyOn(api, "fetchGlobeStats").mockResolvedValue(updatedStats);
 
     fireEvent.click(screen.getByText("⟳ Refresh from USGS"));

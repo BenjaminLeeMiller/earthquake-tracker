@@ -1,5 +1,6 @@
 """Tests for /api/earthquakes routes."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -13,15 +14,15 @@ pytestmark = pytest.mark.db
 
 
 def _quake(id: str, magnitude: float, occurred_at: datetime) -> Earthquake:
-    return Earthquake(id=id, magnitude=magnitude, occurred_at=occurred_at, latitude=1.0, longitude=1.0)
+    return Earthquake(
+        id=id, magnitude=magnitude, occurred_at=occurred_at, latitude=1.0, longitude=1.0
+    )
 
 
 class TestListEarthquakes:
     async def test_pagination(self, client, db_session):
-        base_time = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        db_session.add_all(
-            [_quake(f"q{i}", 3.0, base_time) for i in range(5)]
-        )
+        base_time = datetime(2024, 1, 1, tzinfo=UTC)
+        db_session.add_all([_quake(f"q{i}", 3.0, base_time) for i in range(5)])
         await db_session.commit()
 
         resp = await client.get("/api/earthquakes", params={"limit": 2, "offset": 0})
@@ -34,7 +35,7 @@ class TestListEarthquakes:
         assert len(resp2.json()["items"]) == 1
 
     async def test_default_min_mag_excludes_negative_magnitude(self, client, db_session):
-        t = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        t = datetime(2024, 1, 1, tzinfo=UTC)
         db_session.add_all(
             [
                 _quake("neg", -0.5, t),
@@ -49,7 +50,7 @@ class TestListEarthquakes:
         assert ids == {"zero", "pos"}
 
     async def test_explicit_min_mag_sentinel_includes_all(self, client, db_session):
-        t = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        t = datetime(2024, 1, 1, tzinfo=UTC)
         db_session.add_all(
             [
                 _quake("neg", -0.5, t),

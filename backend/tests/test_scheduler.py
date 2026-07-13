@@ -4,10 +4,10 @@ Only registration/configuration is asserted, never actual execution — the
 job interval is 1 hour, far too long to wait for in a test, and there's no
 clock-mocking tooling wired up for APScheduler here.
 """
+
 import asyncio
 
 import pytest
-
 from apscheduler.triggers.interval import IntervalTrigger
 
 from app.tasks.scheduler import scheduler, start_scheduler, stop_scheduler

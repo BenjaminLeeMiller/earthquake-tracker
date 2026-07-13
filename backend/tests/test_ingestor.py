@@ -1,5 +1,4 @@
 """Tests for ingestion: initial backfill, hourly refresh, upsert-on-conflict."""
-from datetime import datetime, timezone
 
 import httpx
 import pytest

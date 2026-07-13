@@ -1,4 +1,5 @@
 """APScheduler hourly refresh task."""
+
 from __future__ import annotations
 
 import logging

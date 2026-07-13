@@ -1,4 +1,5 @@
 """Cell detail endpoint: earthquakes in a specific cell."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException

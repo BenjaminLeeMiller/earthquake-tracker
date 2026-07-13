@@ -1,5 +1,6 @@
 """Tests for cell_aggregates rebuilding."""
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import select
@@ -41,8 +42,8 @@ class TestRebuildAggregates:
 
     async def test_single_cell_stats(self, db_session):
         # Two quakes landing in the same cell (same lat/lon/depth, close enough).
-        t1 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        t2 = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        t1 = datetime(2024, 1, 1, tzinfo=UTC)
+        t2 = datetime(2024, 1, 2, tzinfo=UTC)
         db_session.add_all(
             [
                 _make_earthquake("q1", 35.6, 139.7, 10.0, 4.0, t1),
@@ -68,7 +69,7 @@ class TestRebuildAggregates:
                 longitude=None,
                 depth_km=None,
                 magnitude=5.0,
-                occurred_at=datetime(2024, 1, 1, tzinfo=timezone.utc),
+                occurred_at=datetime(2024, 1, 1, tzinfo=UTC),
                 depth_layer=None,
                 lat_band=None,
                 lon_index=None,
@@ -80,7 +81,7 @@ class TestRebuildAggregates:
         assert rowcount == 0
 
     async def test_rerun_updates_existing_cell_via_on_conflict(self, db_session):
-        t1 = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        t1 = datetime(2024, 1, 1, tzinfo=UTC)
         db_session.add(_make_earthquake("q1", 10.0, 20.0, 5.0, 3.0, t1))
         await db_session.commit()
         await rebuild_aggregates(db_session)
@@ -88,7 +89,7 @@ class TestRebuildAggregates:
         agg = (await db_session.execute(select(CellAggregate))).scalar_one()
         assert agg.eq_count == 1
 
-        t2 = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        t2 = datetime(2024, 1, 2, tzinfo=UTC)
         db_session.add(_make_earthquake("q2", 10.0, 20.0, 5.0, 7.0, t2))
         await db_session.commit()
         await rebuild_aggregates(db_session)

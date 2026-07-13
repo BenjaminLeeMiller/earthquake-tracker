@@ -1,4 +1,5 @@
 """Earthquake list and manual refresh endpoints."""
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models.earthquake import Earthquake
-from app.schemas.earthquake import EarthquakeListResponse, EarthquakeOut
+from app.schemas.earthquake import EarthquakeListResponse
 from app.services.ingestor import run_hourly_refresh
 
 logger = logging.getLogger(__name__)

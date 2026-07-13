@@ -1,0 +1,32 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.21
+    hooks:
+      - id: ruff
+        name: ruff check (backend)
+        args: [--fix]
+        files: ^backend/
+      - id: ruff-format
+        name: ruff format (backend)
+        files: ^backend/
+
+  - repo: local
+    hooks:
+      # pre-commit passes matched paths relative to the repo root (e.g.
+      # frontend/src/App.tsx); `cd frontend` first would double that prefix
+      # if those paths were forwarded as arguments, so these run over the
+      # whole frontend/ project instead of threading specific filenames
+      # through — fast enough at this project's size, and avoids that class
+      # of path-mismatch bug entirely.
+      - id: eslint
+        name: eslint (frontend)
+        entry: bash -c 'cd frontend && npx eslint --fix .'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+      - id: prettier
+        name: prettier (frontend)
+        entry: bash -c 'cd frontend && npx prettier --write .'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|json|css|html)$
+        pass_filenames: false

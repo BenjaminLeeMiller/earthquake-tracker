@@ -1,10 +1,9 @@
 """Globe endpoints: cells per layer and global stats."""
+
 from __future__ import annotations
 
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -19,9 +18,7 @@ router = APIRouter(prefix="/globe", tags=["globe"])
 @router.get("/earthquakes", response_model=EarthquakeListResponse)
 async def get_earthquakes(db: AsyncSession = Depends(get_db)):
     """Return all earthquakes, unpaginated."""
-    result = await db.execute(
-        select(Earthquake).order_by(Earthquake.occurred_at.desc())
-    )
+    result = await db.execute(select(Earthquake).order_by(Earthquake.occurred_at.desc()))
     items = result.scalars().all()
     return EarthquakeListResponse(total=len(items), items=items)
 
@@ -32,9 +29,7 @@ async def get_cells(
     db: AsyncSession = Depends(get_db),
 ):
     """Return all non-empty cells for a given depth layer as a compact flat array."""
-    result = await db.execute(
-        select(CellAggregate).where(CellAggregate.depth_layer == depth_layer)
-    )
+    result = await db.execute(select(CellAggregate).where(CellAggregate.depth_layer == depth_layer))
     cells = result.scalars().all()
 
     flat: list[list] = [
@@ -60,9 +55,7 @@ async def get_stats(db: AsyncSession = Depends(get_db)):
     last_fetched = await db.scalar(select(func.max(Earthquake.fetched_at)))
 
     layers_result = await db.execute(
-        select(CellAggregate.depth_layer)
-        .distinct()
-        .order_by(CellAggregate.depth_layer)
+        select(CellAggregate.depth_layer).distinct().order_by(CellAggregate.depth_layer)
     )
     active_layers = [r[0] for r in layers_result.all()]
 

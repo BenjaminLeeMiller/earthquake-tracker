@@ -79,8 +79,10 @@ export const useAppStore = create<AppState>((set) => ({
   // panels share the same sidebar space, so selecting one clears the other
   // (but deselecting, i.e. passing null, leaves an unrelated selection
   // alone).
-  selectEarthquake: (eq) => set((s) => ({ selectedEarthquake: eq, selectedVolcano: eq ? null : s.selectedVolcano })),
-  selectVolcano: (v) => set((s) => ({ selectedVolcano: v, selectedEarthquake: v ? null : s.selectedEarthquake })),
+  selectEarthquake: (eq) =>
+    set((s) => ({ selectedEarthquake: eq, selectedVolcano: eq ? null : s.selectedVolcano })),
+  selectVolcano: (v) =>
+    set((s) => ({ selectedVolcano: v, selectedEarthquake: v ? null : s.selectedEarthquake })),
   // Changing either filter mid-replay stops and resets playback rather than
   // letting it keep running against a filter it was never computed for —
   // see handleReset in PlaybackControls.tsx for why null (not timeRange[0])

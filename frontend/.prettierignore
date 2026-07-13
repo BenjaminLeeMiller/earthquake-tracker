@@ -1,0 +1,8 @@
+dist
+node_modules
+package-lock.json
+
+# Deliberately minified static data assets (see GlobeCanvas.tsx's import
+# comments) -- pretty-printing these bloats them ~30% for no benefit.
+src/assets/plate-boundaries.json
+src/assets/volcanoes.json
