@@ -31,27 +31,33 @@ describe("magColor", () => {
     expect(magColor(100)).toBe(magColor(MAX_MAG));
   });
 
-  it("every consecutive whole-number magnitude gets a distinguishable color", () => {
-    // Regression guard for the low-end-compression bug: a curved mapping
-    // used to cluster small quakes into nearly the same color.
-    for (let m = MIN_MAG; m < MAX_MAG; m++) {
-      expect(magColor(m)).not.toBe(magColor(m + 1));
-    }
-  });
-
-  it("every consecutive whole-number magnitude is perceptually well-separated, not just technically different", () => {
-    // Regression guard for "quakes blending together": a multi-hue gradient
-    // should keep every adjacent step's Euclidean RGB distance comfortably
-    // above a "just barely different" threshold.
+  it("within the practical 2.5–7 band, every whole-number magnitude is perceptually well-separated", () => {
+    // Regression guard for "quakes blending together": the color gradient
+    // is scoped to where real data actually lives (COLOR_MIN_MAG..
+    // COLOR_MAX_MAG, 2.5–7), so every adjacent step's Euclidean RGB
+    // distance should stay comfortably above a "just barely different"
+    // threshold across that band.
     const parse = (c: string) => c.match(/\d+/g)!.map(Number);
     const distance = (a: number, b: number) => {
       const [r1, g1, b1] = parse(magColor(a));
       const [r2, g2, b2] = parse(magColor(b));
       return Math.sqrt((r2 - r1) ** 2 + (g2 - g1) ** 2 + (b2 - b1) ** 2);
     };
-    for (let m = MIN_MAG; m < MAX_MAG; m++) {
+    for (let m = 3; m < 7; m++) {
       expect(distance(m, m + 1)).toBeGreaterThan(20);
     }
+  });
+
+  it("clamps every magnitude below the practical band to the same low color", () => {
+    expect(magColor(0)).toBe(magColor(1));
+    expect(magColor(1)).toBe(magColor(2));
+    expect(magColor(2)).toBe(magColor(2.5));
+  });
+
+  it("clamps every magnitude above the practical band to the same high color", () => {
+    expect(magColor(7)).toBe(magColor(8));
+    expect(magColor(8)).toBe(magColor(9));
+    expect(magColor(9)).toBe(magColor(10));
   });
 
   it("shifts hue (not just shade) across the range — high-magnitude red isn't just a darker low-magnitude yellow", () => {
@@ -131,10 +137,21 @@ describe("MAG_BUCKET_COLORS", () => {
     expect(MAG_BUCKET_COLORS[MAG_BUCKET_COUNT - 1]).toBe("rgb(105, 0, 0)");
   });
 
-  it("every bucket has a distinct color from its neighbors", () => {
-    for (let i = 0; i < MAG_BUCKET_COLORS.length - 1; i++) {
+  it("buckets within the practical 2.5–7 band (magnitudes 3–7) are each distinct from their neighbors", () => {
+    for (let i = 3; i < 7; i++) {
       expect(MAG_BUCKET_COLORS[i]).not.toBe(MAG_BUCKET_COLORS[i + 1]);
     }
+  });
+
+  it("buckets below the practical band (magnitudes 0–2) share the same clamped low color", () => {
+    expect(MAG_BUCKET_COLORS[0]).toBe(MAG_BUCKET_COLORS[1]);
+    expect(MAG_BUCKET_COLORS[1]).toBe(MAG_BUCKET_COLORS[2]);
+  });
+
+  it("buckets above the practical band (magnitudes 7–10) share the same clamped high color", () => {
+    expect(MAG_BUCKET_COLORS[7]).toBe(MAG_BUCKET_COLORS[8]);
+    expect(MAG_BUCKET_COLORS[8]).toBe(MAG_BUCKET_COLORS[9]);
+    expect(MAG_BUCKET_COLORS[9]).toBe(MAG_BUCKET_COLORS[10]);
   });
 });
 

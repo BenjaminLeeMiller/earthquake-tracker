@@ -44,9 +44,25 @@ function colorAt(t: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+// The color gradient's own domain is narrower than MIN_MAG..MAX_MAG: real
+// earthquake data is heavily concentrated in a mid-single-digit band (the
+// app's own default magnitude floor is 2.5, and M7+ events are rare), so
+// stretching the gradient across the full 0-10 range left the vast
+// majority of on-screen quakes crammed into a sliver of it, still looking
+// nearly the same color. Scoping the gradient to this practical band means
+// differentiation is spent where the data actually is; magnitudes outside
+// it just clamp to the nearest endpoint color.
+const COLOR_MIN_MAG = 2.5;
+const COLOR_MAX_MAG = 7;
+
+function normalizedMagForColor(mag: number | null): number {
+  const m = Math.max(COLOR_MIN_MAG, Math.min(COLOR_MAX_MAG, mag ?? COLOR_MIN_MAG));
+  return (m - COLOR_MIN_MAG) / (COLOR_MAX_MAG - COLOR_MIN_MAG);
+}
+
 /** Canonical magnitude→color mapping, shared by sidebar cards and globe markers. */
 export function magColor(mag: number | null): string {
-  return colorAt(normalizedMag(mag));
+  return colorAt(normalizedMagForColor(mag));
 }
 
 /** Magnitude→sphere radius (world units; base sphereGeometry radius is 1). */
@@ -77,11 +93,13 @@ export function magBucketIndex(mag: number | null): number {
   return Math.min(MAG_BUCKET_COUNT - 1, Math.floor(clampedMag(mag)));
 }
 
-// Bucket 0 anchors exactly to the first color stop and the last bucket
-// exactly to the last stop, with every whole-number magnitude in between
-// evenly stepped across the multi-hue gradient.
+// Each bucket's color reflects where its whole-number magnitude falls
+// within the practical COLOR_MIN_MAG..COLOR_MAX_MAG band (same scoping as
+// magColor), not a straight line across all 11 buckets — magnitudes below
+// 2.5 or above 7 clamp to the nearest endpoint since they're rare in
+// practice (and the app's own default filter already excludes sub-2.5).
 export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) =>
-  colorAt(i / (MAG_BUCKET_COUNT - 1))
+  colorAt(normalizedMagForColor(i))
 );
 
 // Replay fade-out duration per magnitude bucket: weaker quakes fade within
