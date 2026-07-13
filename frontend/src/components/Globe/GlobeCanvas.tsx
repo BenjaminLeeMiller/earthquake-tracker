@@ -19,7 +19,13 @@ import type { VolcanoRecord } from "../../types/volcano";
 // EarthSphere.tsx). minDistance must stay > GLOBE_RADIUS or the camera
 // could dip beneath the surface; this margin keeps that a deliberate
 // relationship instead of two independent magic numbers.
-const CAMERA_MIN_CLEARANCE = 0.8;
+const CAMERA_MIN_CLEARANCE = 0.15;
+
+// The camera's near-clipping plane must stay comfortably below
+// CAMERA_MIN_CLEARANCE (the closest the surface can ever get to the
+// camera) — otherwise the near plane cuts through the globe itself at
+// close zoom, clipping the nearest geometry away entirely.
+const CAMERA_NEAR = 0.05;
 
 export function GlobeCanvas() {
   const plateBoundariesOn = useAppStore((s) => s.faultLayers.plateBoundaries);
@@ -30,7 +36,7 @@ export function GlobeCanvas() {
     <Canvas
       style={{ width: "100%", height: "100%" }}
       gl={{ antialias: true }}
-      camera={{ fov: 45, near: 0.5, far: 20, position: [0, 0, 2.8] }}
+      camera={{ fov: 45, near: CAMERA_NEAR, far: 20, position: [0, 0, 2.8] }}
     >
       {/* Solid black scene background — high contrast for marker colors */}
       <color attach="background" args={["#000408"]} />
