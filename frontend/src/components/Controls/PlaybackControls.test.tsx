@@ -1,13 +1,18 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { PlaybackControls } from "./PlaybackControls";
 import { useAppStore } from "../../store/useAppStore";
+import * as api from "../../api/earthquakes";
 
 const INITIAL_STATE = useAppStore.getState();
 
 beforeEach(() => {
   useAppStore.setState(INITIAL_STATE, true);
+  // PlaybackControls renders ReplayHistograms as a child, which fetches
+  // the full quake list on mount -- mock it so tests don't hit a real
+  // (and here, unreachable) network request.
+  vi.spyOn(api, "fetchAllEarthquakes").mockResolvedValue({ total: 0, items: [] });
 });
 
 describe("PlaybackControls", () => {

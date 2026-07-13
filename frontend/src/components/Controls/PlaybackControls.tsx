@@ -1,6 +1,7 @@
 import { useAppStore } from "../../store/useAppStore";
 import { panelStyle } from "../Sidebar/panelStyle";
 import { MIN_SPEED, MAX_SPEED } from "../../utils/playbackSpeed";
+import { ReplayHistograms } from "./ReplayHistograms";
 
 function fmt(ms: number) {
   return new Date(ms).toLocaleString();
@@ -84,6 +85,7 @@ export function PlaybackControls() {
         />
       </div>
       <span style={styles.speedLabel}>{formatSpeed(playbackSpeedDaysPerSec)}</span>
+      <ReplayHistograms />
     </div>
   );
 }
