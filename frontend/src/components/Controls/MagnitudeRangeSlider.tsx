@@ -1,4 +1,4 @@
-import { useAppStore } from "../../store/useAppStore";
+import { useAppStore, DEFAULT_MIN_MAGNITUDE } from "../../store/useAppStore";
 import { CollapsibleSection } from "../Sidebar/CollapsibleSection";
 import { MIN_MAG, MAX_MAG } from "../../utils/magnitude";
 
@@ -43,7 +43,7 @@ export function MagnitudeRangeSlider() {
         />
       </div>
 
-      <button style={styles.resetBtn} onClick={() => setMagRange([MIN_MAG, MAX_MAG])}>
+      <button style={styles.resetBtn} onClick={() => setMagRange([DEFAULT_MIN_MAGNITUDE, MAX_MAG])}>
         Reset
       </button>
     </CollapsibleSection>

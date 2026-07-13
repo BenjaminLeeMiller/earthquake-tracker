@@ -5,8 +5,10 @@ import { MAX_MAG } from "../utils/magnitude";
 import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
 
 // Default filter starting points on load (the sliders' own min/max bounds
-// are unaffected — these just narrow the initial view).
-const DEFAULT_MIN_MAGNITUDE = 2.5;
+// are unaffected — these just narrow the initial view). Also what "Reset"
+// on the Magnitude Range control restores, rather than the slider's full
+// MIN_MAG..MAX_MAG bounds.
+export const DEFAULT_MIN_MAGNITUDE = 2.5;
 
 // Add new fault-line datasets here as they're introduced — the store shape,
 // FaultLines renderer, and FaultLayersMenu all key off this union, so a new
