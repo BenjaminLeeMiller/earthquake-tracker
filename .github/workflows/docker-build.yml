@@ -1,0 +1,19 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Backend and frontend test workflows exercise the code; this one
+      # catches Dockerfile/compose breakage (e.g. a file the image needs
+      # that isn't COPYed) that unit tests can't see.
+      - name: Build images
+        run: docker compose build

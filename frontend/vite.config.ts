@@ -3,6 +3,19 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        // three.js dominates the bundle (~1MB of the 1.36MB total when
+        // everything shipped as one chunk). Splitting the heavyweight,
+        // rarely-changing vendors into their own chunks lets the app code
+        // load and cache independently of them.
+        manualChunks: {
+          three: ["three", "@react-three/fiber", "@react-three/drei"],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
