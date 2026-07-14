@@ -58,6 +58,12 @@ interface AppState {
   refreshing: boolean;
   dataVersion: number;
 
+  // Whether the right sidebar is shown at all. Collapsing it gives the
+  // globe the full window width — the difference between usable and not
+  // on phone-sized screens, where 300px of sidebar leaves the globe a
+  // sliver.
+  sidebarOpen: boolean;
+
   // Accordion coordination for the sidebar's collapsible sections (Options,
   // Time Range, Magnitude Range): at most one is expanded at a time, keyed
   // by the id each <CollapsibleSection> passes in. null = all collapsed.
@@ -82,6 +88,7 @@ interface AppState {
   setRefreshing: (refreshing: boolean) => void;
   bumpDataVersion: () => void;
   setExpandedSection: (id: string | null) => void;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 // Guards loadEarthquakes against out-of-order responses: if a second load
@@ -106,6 +113,7 @@ export const useAppStore = create<AppState>((set) => ({
   playbackSpeedDaysPerSec: 1,
   refreshing: false,
   dataVersion: 0,
+  sidebarOpen: true,
   expandedSection: null,
 
   setStats: (stats) => set({ stats }),
@@ -157,4 +165,5 @@ export const useAppStore = create<AppState>((set) => ({
   setRefreshing: (refreshing) => set({ refreshing }),
   bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
   setExpandedSection: (id) => set({ expandedSection: id }),
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
 }));
