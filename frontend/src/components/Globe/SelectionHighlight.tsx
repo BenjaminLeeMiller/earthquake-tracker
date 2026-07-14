@@ -88,7 +88,13 @@ export function SelectionHighlight() {
     // there's nothing else it would incorrectly paint over.
     <mesh ref={meshRef} renderOrder={2} visible={false}>
       <ringGeometry args={[RING_INNER_FACTOR / RING_OUTER_FACTOR, 1, 48]} />
-      <meshBasicMaterial color="#ffffff" transparent opacity={0.9} side={DoubleSide} depthTest={false} />
+      <meshBasicMaterial
+        color="#ffffff"
+        transparent
+        opacity={0.9}
+        side={DoubleSide}
+        depthTest={false}
+      />
     </mesh>
   );
 }

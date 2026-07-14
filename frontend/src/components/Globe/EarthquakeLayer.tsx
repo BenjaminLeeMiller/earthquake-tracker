@@ -184,9 +184,10 @@ function BucketMesh({ quakes, color, fadeDurationMs, onSelect }: BucketMeshProps
       const withinFadeWindow = !playbackActive || (age >= 0 && age <= fadeDurationMs);
       dummy.position.set(pos[0], pos[1], pos[2]);
       scratchPos.set(pos[0], pos[1], pos[2]);
-      const scale = facingCamera && withinFadeWindow
-        ? radius * (camera.position.distanceTo(scratchPos) / REFERENCE_DISTANCE)
-        : 0;
+      const scale =
+        facingCamera && withinFadeWindow
+          ? radius * (camera.position.distanceTo(scratchPos) / REFERENCE_DISTANCE)
+          : 0;
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
