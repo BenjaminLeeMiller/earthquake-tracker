@@ -103,10 +103,50 @@ class TestFetchEarthquakes:
         assert usgs_mock.calls.call_count == 3
         assert len(result) == 7  # 3 + 4, not the 20,000 from the oversized first call
 
-    async def test_raises_on_http_error(self, usgs_mock):
+    async def test_retries_transient_500_then_succeeds(self, usgs_mock, monkeypatch):
+        monkeypatch.setattr("app.services.usgs_client.BACKOFF_BASE_SECONDS", 0)
+        ok = make_feature_collection([make_feature(id="us_after_retry")])
+        usgs_mock.get(settings.USGS_BASE_URL).mock(
+            side_effect=[httpx.Response(500), httpx.Response(200, json=ok)]
+        )
+
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 2, tzinfo=UTC)
+        result = await fetch_earthquakes(start, end)
+
+        assert len(result) == 1
+        assert usgs_mock.calls.call_count == 2
+
+    async def test_gives_up_after_max_attempts_on_persistent_500(self, usgs_mock, monkeypatch):
+        monkeypatch.setattr("app.services.usgs_client.BACKOFF_BASE_SECONDS", 0)
         usgs_mock.get(settings.USGS_BASE_URL).mock(return_value=httpx.Response(500))
 
         start = datetime(2024, 1, 1, tzinfo=UTC)
         end = datetime(2024, 1, 2, tzinfo=UTC)
         with pytest.raises(httpx.HTTPStatusError):
             await fetch_earthquakes(start, end)
+        assert usgs_mock.calls.call_count == 3  # MAX_ATTEMPTS
+
+    async def test_client_error_4xx_is_not_retried(self, usgs_mock, monkeypatch):
+        monkeypatch.setattr("app.services.usgs_client.BACKOFF_BASE_SECONDS", 0)
+        usgs_mock.get(settings.USGS_BASE_URL).mock(return_value=httpx.Response(400))
+
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 2, tzinfo=UTC)
+        with pytest.raises(httpx.HTTPStatusError):
+            await fetch_earthquakes(start, end)
+        assert usgs_mock.calls.call_count == 1
+
+    async def test_retries_network_error_then_succeeds(self, usgs_mock, monkeypatch):
+        monkeypatch.setattr("app.services.usgs_client.BACKOFF_BASE_SECONDS", 0)
+        ok = make_feature_collection([make_feature(id="us_after_neterr")])
+        usgs_mock.get(settings.USGS_BASE_URL).mock(
+            side_effect=[httpx.ConnectError("boom"), httpx.Response(200, json=ok)]
+        )
+
+        start = datetime(2024, 1, 1, tzinfo=UTC)
+        end = datetime(2024, 1, 2, tzinfo=UTC)
+        result = await fetch_earthquakes(start, end)
+
+        assert len(result) == 1
+        assert usgs_mock.calls.call_count == 2
