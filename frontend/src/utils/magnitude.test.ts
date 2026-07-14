@@ -77,15 +77,32 @@ describe("magRadius", () => {
     expect(magRadius(null)).toBe(magRadius(MIN_MAG));
   });
 
-  it("MAX_MAG gives the maximum radius", () => {
-    const maxRadius = magRadius(MAX_MAG);
-    expect(magRadius(5)).toBeLessThan(maxRadius);
+  it("has a visible floor — even the smallest quake isn't a sub-pixel speck", () => {
+    expect(magRadius(MIN_MAG)).toBeGreaterThanOrEqual(0.006);
   });
 
-  it("increases monotonically with magnitude", () => {
-    expect(magRadius(1)).toBeLessThan(magRadius(3));
-    expect(magRadius(3)).toBeLessThan(magRadius(6));
-    expect(magRadius(6)).toBeLessThan(magRadius(9));
+  it("strictly increases across whole-number magnitudes within the practical 2.5–7 band", () => {
+    for (let m = 3; m < 7; m++) {
+      expect(magRadius(m)).toBeLessThan(magRadius(m + 1));
+    }
+  });
+
+  it("each whole-number step in the band is meaningfully bigger, not marginal", () => {
+    // Regression guard for the old full-domain curve, under which M3–M5
+    // (most of the data) differed by fractions of a pixel.
+    for (let m = 3; m < 7; m++) {
+      expect(magRadius(m + 1) / magRadius(m)).toBeGreaterThan(1.2);
+    }
+  });
+
+  it("clamps below the practical band to the same floor radius", () => {
+    expect(magRadius(0)).toBe(magRadius(2.5));
+    expect(magRadius(1)).toBe(magRadius(2.5));
+  });
+
+  it("clamps above the practical band to the same max radius", () => {
+    expect(magRadius(7)).toBe(magRadius(MAX_MAG));
+    expect(magRadius(8)).toBe(magRadius(10));
   });
 });
 

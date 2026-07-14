@@ -27,6 +27,8 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const VERTEX_SHADER = `
   attribute float occurredAt;
   varying float vAge;
+  varying vec3 vNormal;
+  varying vec3 vViewPos;
   uniform float uCurrentTime;
   void main() {
     vAge = uCurrentTime - occurredAt;
@@ -35,6 +37,10 @@ const VERTEX_SHADER = `
     #else
       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
     #endif
+    // Instance matrices here are translation + uniform scale only, so the
+    // plain normalMatrix (no per-instance normal correction) is safe.
+    vNormal = normalMatrix * normal;
+    vViewPos = mvPosition.xyz;
     gl_Position = projectionMatrix * mvPosition;
   }
 `;
@@ -44,11 +50,22 @@ const FRAGMENT_SHADER = `
   uniform float uFadeDurationMs;
   uniform float uPlaybackActive;
   varying float vAge;
+  varying vec3 vNormal;
+  varying vec3 vViewPos;
+
+  // Fresnel rim: darken each sphere's silhouette edge to a deeper shade of
+  // its own color — keeps pale markers visible over light terrain and
+  // visually separates overlapping markers in swarms, without a second
+  // mesh. RIM_DARKEN is the edge's brightness relative to the fill.
+  const float RIM_DARKEN = 0.35;
+
   void main() {
     float alpha = uPlaybackActive < 0.5
       ? 1.0
       : (vAge < 0.0 ? 0.0 : clamp(1.0 - vAge / uFadeDurationMs, 0.0, 1.0));
-    gl_FragColor = vec4(uColor, alpha);
+    float rim = 1.0 - abs(dot(normalize(vNormal), normalize(-vViewPos)));
+    vec3 color = uColor * mix(1.0, RIM_DARKEN, smoothstep(0.55, 0.9, rim));
+    gl_FragColor = vec4(color, alpha);
   }
 `;
 
