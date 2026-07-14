@@ -20,6 +20,7 @@ const QUAKE: EarthquakeOut = {
   magnitude_type: "mb",
   occurred_at: "2024-01-01T00:00:00Z",
   place: "Near Testville",
+  url: null,
   depth_layer: 0,
   lat_band: 0,
   lon_index: 0,
@@ -47,5 +48,23 @@ describe("EarthquakeDetail", () => {
     fireEvent.click(screen.getByText("✕"));
 
     expect(useAppStore.getState().selectedEarthquake).toBeNull();
+  });
+
+  it("shows a USGS event link when the quake has a url, opening in a new tab", () => {
+    const eventUrl = "https://earthquake.usgs.gov/earthquakes/eventpage/us1234";
+    useAppStore.getState().selectEarthquake({ ...QUAKE, url: eventUrl });
+    render(<EarthquakeDetail />);
+
+    const link = screen.getByRole("link", { name: /View on USGS/ });
+    expect(link).toHaveAttribute("href", eventUrl);
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("omits the USGS link when the quake has no url", () => {
+    useAppStore.getState().selectEarthquake(QUAKE);
+    render(<EarthquakeDetail />);
+
+    expect(screen.queryByRole("link", { name: /View on USGS/ })).not.toBeInTheDocument();
   });
 });

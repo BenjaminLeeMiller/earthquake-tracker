@@ -36,6 +36,16 @@ export function EarthquakeList({ earthquakes }: Props) {
               Depth: {eq.depth_km.toFixed(1)} km
             </div>
           )}
+          {eq.url && (
+            <a
+              href={eq.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 11, color: "#4db8ff", marginTop: 4, display: "inline-block" }}
+            >
+              View on USGS ↗
+            </a>
+          )}
         </div>
       ))}
     </div>

@@ -9,6 +9,7 @@ export interface EarthquakeOut {
   magnitude_type: string | null;
   occurred_at: string | null;
   place: string | null;
+  url: string | null;
   depth_layer: number | null;
   lat_band: number | null;
   lon_index: number | null;

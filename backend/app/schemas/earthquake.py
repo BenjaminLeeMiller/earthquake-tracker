@@ -12,6 +12,7 @@ class EarthquakeOut(BaseModel):
     magnitude_type: str | None
     occurred_at: datetime | None
     place: str | None
+    url: str | None = None
     depth_layer: int | None
     lat_band: int | None
     lon_index: int | None

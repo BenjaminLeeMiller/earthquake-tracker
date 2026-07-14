@@ -12,6 +12,7 @@ def make_feature(
     lat: float = 35.6,
     depth_km: float | None = 10.0,
     time_ms: int = 1_700_000_000_000,
+    url: str | None = "https://earthquake.usgs.gov/earthquakes/eventpage/us70000001",
 ) -> dict:
     """Build a GeoJSON feature dict shaped like a USGS API response entry."""
     coords = [lon, lat] if depth_km is None else [lon, lat, depth_km]
@@ -22,6 +23,7 @@ def make_feature(
             "magType": mag_type,
             "place": place,
             "time": time_ms,
+            "url": url,
         },
         "geometry": {
             "type": "Point",

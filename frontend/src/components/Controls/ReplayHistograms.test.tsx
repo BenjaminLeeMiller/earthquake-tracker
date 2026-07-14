@@ -25,6 +25,7 @@ function makeQuake(overrides: Partial<EarthquakeOut> = {}): EarthquakeOut {
     magnitude_type: "mb",
     occurred_at: null,
     place: null,
+    url: null,
     depth_layer: null,
     lat_band: null,
     lon_index: null,

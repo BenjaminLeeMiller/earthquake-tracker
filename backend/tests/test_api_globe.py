@@ -21,6 +21,21 @@ class TestGetEarthquakes:
         assert body["total"] == 3
         assert len(body["items"]) == 3
 
+    async def test_exposes_usgs_event_url_from_raw_properties(self, client, db_session):
+        event_url = "https://earthquake.usgs.gov/earthquakes/eventpage/q_url"
+        db_session.add_all(
+            [
+                Earthquake(id="q_url", magnitude=5.0, raw_properties={"url": event_url}),
+                Earthquake(id="q_no_url", magnitude=5.0, raw_properties=None),
+            ]
+        )
+        await db_session.commit()
+
+        resp = await client.get("/api/globe/earthquakes")
+        items = {item["id"]: item for item in resp.json()["items"]}
+        assert items["q_url"]["url"] == event_url
+        assert items["q_no_url"]["url"] is None
+
 
 class TestGetStats:
     async def test_stats_reflect_seeded_data(self, client, db_session):
