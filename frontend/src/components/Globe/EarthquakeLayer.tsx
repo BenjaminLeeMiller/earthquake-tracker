@@ -15,8 +15,16 @@ import {
 } from "../../utils/magnitude";
 
 const SURFACE_RADIUS = 1.002;
+// Camera distance at which a marker renders at its natural magRadius()
+// size — matches GlobeCanvas's initial camera position, so the default
+// view is unchanged. Each instance's scale is its own distance from the
+// camera relative to this reference, which keeps their on-screen size
+// constant while zooming instead of shrinking/growing with perspective
+// like a fixed-world-size object normally would (mirrors VolcanoLayer).
+const REFERENCE_DISTANCE = 2.8;
 const dummy = new Object3D();
 const cameraDir = new Vector3();
+const scratchPos = new Vector3();
 
 // Time-lapse replay: reaching the end of the selected time range holds the
 // fully-revealed state for a few seconds (so it registers) before looping
@@ -138,49 +146,19 @@ function BucketMesh({ quakes, color, fadeDurationMs, onSelect }: BucketMeshProps
     mesh.count = markerData.length;
   }, [markerData]);
 
-  // Resting state (all visible, full opacity) only in the plain default
-  // case — translucent globe, no playback session engaged. Otherwise the
-  // useFrame below takes over every frame (far-side culling and/or fade).
-  //
-  // Also resets uPlaybackActive here: the useFrame below skips entirely in
-  // this resting case (that's the point — no per-frame work when nothing's
-  // playing), so it's the only per-instance mechanism updating the scale.
-  // But the fade shader's alpha is driven by uniforms set in that same
-  // useFrame — if nothing resets uPlaybackActive back to 0, it stays stuck
-  // at whatever it was left at (from playing/pausing), and the shader keeps
-  // computing alpha from a frozen uCurrentTime, hiding markers via alpha
-  // even though their scale was just restored to full.
-  useEffect(() => {
-    if (translucentGlobe && !playbackActive) {
-      const mesh = meshRef.current;
-      if (!mesh) return;
-      for (let i = 0; i < markerData.length; i++) {
-        const { pos, radius } = markerData[i];
-        dummy.position.set(pos[0], pos[1], pos[2]);
-        dummy.scale.setScalar(radius);
-        dummy.updateMatrix();
-        mesh.setMatrixAt(i, dummy.matrix);
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-      if (materialRef.current) {
-        materialRef.current.uniforms.uPlaybackActive.value = 0;
-      }
-    }
-  }, [markerData, translucentGlobe, playbackActive]);
-
-  // The globe rotates (and zooms) freely via OrbitControls, so which markers
-  // count as "past the horizon" changes continuously — re-cull against the
-  // live camera every frame while the globe is opaque (see utils/horizon.ts
-  // for why the threshold isn't a flat 0/full-hemisphere test). Also runs
-  // whenever a playback session is active (even translucent), to drive the
-  // fade shader's uCurrentTime uniform and gate raycasting on the fade
-  // window (a fully-faded or not-yet-occurred marker shouldn't be
-  // clickable, even though the shader alone would already render it
-  // invisible).
+  // The globe rotates (and zooms) freely via OrbitControls, so both which
+  // markers count as "past the horizon" and each marker's on-screen size
+  // (held constant via REFERENCE_DISTANCE, see above) change continuously —
+  // this runs every frame unconditionally rather than only while the globe
+  // is opaque or a playback session is active. Horizon culling is still
+  // skipped while translucentGlobe is on (see utils/horizon.ts for why the
+  // threshold isn't a flat 0/full-hemisphere test), and the fade-window/
+  // uPlaybackActive uniform logic is still a no-op while no playback
+  // session is active — but scale itself can no longer be computed once and
+  // left alone.
   useFrame(({ camera }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    if (translucentGlobe && !playbackActive) return; // resting-state effect handles this case
 
     const { playbackTime } = useAppStore.getState();
     const base = timeRange ? timeRange[0] : 0;
@@ -205,7 +183,12 @@ function BucketMesh({ quakes, color, fadeDurationMs, onSelect }: BucketMeshProps
       const age = current - time; // elapsed time since this quake occurred
       const withinFadeWindow = !playbackActive || (age >= 0 && age <= fadeDurationMs);
       dummy.position.set(pos[0], pos[1], pos[2]);
-      dummy.scale.setScalar(facingCamera && withinFadeWindow ? radius : 0);
+      scratchPos.set(pos[0], pos[1], pos[2]);
+      const scale =
+        facingCamera && withinFadeWindow
+          ? radius * (camera.position.distanceTo(scratchPos) / REFERENCE_DISTANCE)
+          : 0;
+      dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
     }

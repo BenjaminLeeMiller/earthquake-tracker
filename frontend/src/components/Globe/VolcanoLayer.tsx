@@ -7,8 +7,10 @@ import { horizonThreshold, isFacingCamera } from "../../utils/horizon";
 import type { VolcanoRecord } from "../../types/volcano";
 
 const SURFACE_RADIUS = 1.002;
-const CONE_HEIGHT = 0.032;
-const CONE_RADIUS = 0.013;
+// Exported for SelectionHighlight, which needs the same cone dimensions to
+// size/position the ring around a selected volcano.
+export const CONE_HEIGHT = 0.032;
+export const CONE_RADIUS = 0.013;
 // Camera distance at which a marker renders at its "base" (CONE_HEIGHT/
 // CONE_RADIUS) size — matches GlobeCanvas's initial camera position, so
 // the default view is unchanged. Each instance's scale is its own
