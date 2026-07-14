@@ -9,11 +9,15 @@ mode.
 - **3D globe** (React Three Fiber / Three.js) with a real map texture,
   toggleable translucent/opaque rendering, and orbit/zoom controls.
 - **Earthquake markers** colored and sized by magnitude, with per-quake
-  depth positioning.
+  depth positioning, scaled to a constant on-screen size regardless of zoom.
 - **Fault-line overlay** showing tectonic plate boundaries.
 - **Volcano markers** for the world's Holocene volcanoes, scaled to a
   constant on-screen size regardless of zoom, with click-through details
   (type, elevation, last eruption, tectonic setting).
+- **Selection highlight** — clicking an earthquake or volcano marker rings
+  it with a halo on the globe, alongside its detail panel in the sidebar,
+  so the selected marker stays visually identifiable while you rotate and
+  zoom.
 - **Time range** and **magnitude range** filters (collapsible sidebar
   controls) applied live to the globe. Time range can be set by dragging
   the From/To sliders or by typing an exact date and time into the
@@ -63,7 +67,7 @@ backend/
 frontend/
   src/
     components/
-      Globe/       # Canvas, EarthSphere, EarthquakeLayer, FaultLines, VolcanoLayer, SeismicWaveLayer
+      Globe/       # Canvas, EarthSphere, EarthquakeLayer, FaultLines, VolcanoLayer, SeismicWaveLayer, SelectionHighlight
       Controls/    # Sidebar filter/toggle controls
       Sidebar/     # Stats panel, detail panels, shared layout primitives
     store/         # Zustand app state
