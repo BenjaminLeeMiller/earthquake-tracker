@@ -1,4 +1,4 @@
-"""Fetch USGS data, upsert into DB, then rebuild cell aggregates."""
+"""Fetch USGS data and upsert into the DB."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.models.earthquake import Earthquake
-from app.services.aggregator import rebuild_aggregates
 from app.services.grid import coords_to_cell
 from app.services.usgs_client import fetch_earthquakes, parse_feature
 
@@ -90,5 +89,3 @@ async def _ingest_window(session: AsyncSession, start: datetime, end: datetime) 
         await session.execute(stmt)
         await session.commit()
         logger.info("Upserted batch %d/%d", min(i + BATCH, len(rows)), len(rows))
-
-    await rebuild_aggregates(session)

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TimeRangeSlider } from "./TimeRangeSlider";
 import { useAppStore } from "../../store/useAppStore";
@@ -10,6 +10,10 @@ beforeEach(() => {
   useAppStore.setState(INITIAL_STATE, true);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 const EARLIEST = new Date("2024-01-01T00:00:00Z").toISOString();
 const LATEST = new Date("2024-02-01T00:00:00Z").toISOString();
 
@@ -18,7 +22,6 @@ function seedStats() {
     total_earthquakes: 10,
     earliest: EARLIEST,
     latest: LATEST,
-    active_layers: [0],
     last_fetched: null,
   });
 }
@@ -51,16 +54,31 @@ describe("TimeRangeSlider", () => {
     expect(screen.getByText("Reset")).toBeInTheDocument();
   });
 
-  it("Reset restores the full stats bounds and clears playback", () => {
+  it("Reset restores the ~1-week-before-latest default (not the full stats bounds) and clears playback", () => {
+    // Fake "now" to a point meaningfully inside the fixture's Jan–Feb 2024
+    // bounds — the real current time is years past LATEST, which would
+    // otherwise clamp the "1 week ago" default to LATEST regardless of
+    // whether Reset is correctly using the default vs. the full bounds.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-01-25T00:00:00Z"));
     seedStats();
-    useAppStore.setState({ isPlaying: true, playbackTime: 12345 });
+    // Narrow away from the default first, so Reset has something to undo.
+    useAppStore.setState({
+      timeRange: [new Date(EARLIEST).getTime(), new Date(EARLIEST).getTime() + 1000],
+      isPlaying: true,
+      playbackTime: 12345,
+    });
     render(<TimeRangeSlider />);
 
     fireEvent.click(screen.getByRole("button", { name: /Time Range/ }));
     fireEvent.click(screen.getByText("Reset"));
 
     const { timeRange, isPlaying, playbackTime } = useAppStore.getState();
-    expect(timeRange).toEqual([new Date(EARLIEST).getTime(), new Date(LATEST).getTime()]);
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    expect(timeRange).toEqual([
+      new Date("2024-01-25T00:00:00Z").getTime() - oneWeekMs,
+      new Date(LATEST).getTime(),
+    ]);
     expect(isPlaying).toBe(false);
     expect(playbackTime).toBeNull();
   });

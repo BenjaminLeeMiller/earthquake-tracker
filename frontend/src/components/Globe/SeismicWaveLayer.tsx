@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   BufferGeometry,
@@ -11,7 +11,6 @@ import {
   Vector3,
 } from "three";
 import { useAppStore } from "../../store/useAppStore";
-import { fetchAllEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
 import { latLonToXYZ } from "../../utils/grid";
 import { horizonThreshold, isFacingCamera } from "../../utils/horizon";
 import { magColor } from "../../utils/magnitude";
@@ -86,20 +85,9 @@ export function SeismicWaveLayer() {
   const translucentGlobe = useAppStore((s) => s.translucentGlobe);
   const timeRange = useAppStore((s) => s.timeRange);
   const magRange = useAppStore((s) => s.magRange);
-  const dataVersion = useAppStore((s) => s.dataVersion);
   const playbackActive = useAppStore((s) => s.isPlaying || s.playbackTime !== null);
-
-  const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchAllEarthquakes().then(({ items }) => {
-      if (!cancelled) setQuakes(items);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [dataVersion]);
+  // The shared dataset — fetched once by EarthquakeDataLoader, not per-layer.
+  const quakes = useAppStore((s) => s.earthquakes);
 
   const filtered = useMemo(() => {
     const [minMag, maxMag] = magRange;

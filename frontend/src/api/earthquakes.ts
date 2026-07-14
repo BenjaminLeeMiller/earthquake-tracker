@@ -9,6 +9,7 @@ export interface EarthquakeOut {
   magnitude_type: string | null;
   occurred_at: string | null;
   place: string | null;
+  url: string | null;
   depth_layer: number | null;
   lat_band: number | null;
   lon_index: number | null;
@@ -23,7 +24,6 @@ export interface GlobeStats {
   total_earthquakes: number;
   earliest: string | null;
   latest: string | null;
-  active_layers: number[];
   last_fetched: string | null;
 }
 

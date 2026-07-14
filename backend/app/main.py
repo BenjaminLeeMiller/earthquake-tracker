@@ -10,7 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.config import settings
-from app.database import AsyncSessionLocal, create_tables
+from app.database import AsyncSessionLocal
+from app.migrations import run_migrations
 from app.services.ingestor import run_initial_load
 from app.tasks.scheduler import start_scheduler, stop_scheduler
 
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up …")
-    await create_tables()
+    await run_migrations()
     async with AsyncSessionLocal() as session:
         await run_initial_load(session)
     start_scheduler()

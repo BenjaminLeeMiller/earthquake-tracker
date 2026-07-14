@@ -27,6 +27,12 @@ class Earthquake(Base):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
 
+    @property
+    def url(self) -> str | None:
+        """USGS event-page URL, kept inside raw_properties rather than its
+        own column — surfaced here so response schemas can expose it."""
+        return (self.raw_properties or {}).get("url")
+
     __table_args__ = (
         Index("idx_eq_cell", "depth_layer", "lat_band", "lon_index"),
         Index("idx_eq_occurred", "occurred_at"),

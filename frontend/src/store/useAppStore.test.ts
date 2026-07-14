@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useAppStore } from "./useAppStore";
+import * as api from "../api/earthquakes";
 import type { EarthquakeOut } from "../api/earthquakes";
 import type { VolcanoRecord } from "../types/volcano";
 import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
@@ -8,6 +9,7 @@ const INITIAL_STATE = useAppStore.getState();
 
 beforeEach(() => {
   useAppStore.setState(INITIAL_STATE, true);
+  vi.restoreAllMocks();
 });
 
 const makeQuake = (id: string): EarthquakeOut => ({
@@ -19,6 +21,7 @@ const makeQuake = (id: string): EarthquakeOut => ({
   magnitude_type: "mb",
   occurred_at: null,
   place: null,
+  url: null,
   depth_layer: null,
   lat_band: null,
   lon_index: null,
@@ -47,6 +50,64 @@ describe("initial state", () => {
     expect(state.isPlaying).toBe(false);
     expect(state.playbackTime).toBeNull();
     expect(state.dataVersion).toBe(0);
+    expect(state.earthquakes).toEqual([]);
+    expect(state.quakesLoading).toBe(false);
+    expect(state.quakesError).toBeNull();
+  });
+});
+
+describe("loadEarthquakes", () => {
+  it("stores the fetched dataset and clears the loading flag", async () => {
+    const items = [makeQuake("q1"), makeQuake("q2")];
+    vi.spyOn(api, "fetchAllEarthquakes").mockResolvedValue({ total: 2, items });
+
+    await useAppStore.getState().loadEarthquakes();
+
+    const state = useAppStore.getState();
+    expect(state.earthquakes).toEqual(items);
+    expect(state.quakesLoading).toBe(false);
+    expect(state.quakesError).toBeNull();
+  });
+
+  it("sets quakesError (and stops loading) when the fetch fails", async () => {
+    vi.spyOn(api, "fetchAllEarthquakes").mockRejectedValue(new Error("backend down"));
+
+    await useAppStore.getState().loadEarthquakes();
+
+    const state = useAppStore.getState();
+    expect(state.quakesError).toBe("backend down");
+    expect(state.quakesLoading).toBe(false);
+  });
+
+  it("a successful retry clears a previous error", async () => {
+    vi.spyOn(api, "fetchAllEarthquakes").mockRejectedValueOnce(new Error("backend down"));
+    await useAppStore.getState().loadEarthquakes();
+    expect(useAppStore.getState().quakesError).toBe("backend down");
+
+    vi.spyOn(api, "fetchAllEarthquakes").mockResolvedValue({
+      total: 1,
+      items: [makeQuake("q1")],
+    });
+    await useAppStore.getState().loadEarthquakes();
+
+    expect(useAppStore.getState().quakesError).toBeNull();
+    expect(useAppStore.getState().earthquakes).toHaveLength(1);
+  });
+
+  it("ignores an out-of-order response from a superseded request", async () => {
+    let resolveFirst!: (v: api.EarthquakeListResponse) => void;
+    const first = new Promise<api.EarthquakeListResponse>((r) => (resolveFirst = r));
+    vi.spyOn(api, "fetchAllEarthquakes")
+      .mockReturnValueOnce(first)
+      .mockResolvedValueOnce({ total: 1, items: [makeQuake("newer")] });
+
+    const p1 = useAppStore.getState().loadEarthquakes();
+    const p2 = useAppStore.getState().loadEarthquakes();
+    await p2;
+    resolveFirst({ total: 1, items: [makeQuake("stale")] });
+    await p1;
+
+    expect(useAppStore.getState().earthquakes.map((q) => q.id)).toEqual(["newer"]);
   });
 });
 

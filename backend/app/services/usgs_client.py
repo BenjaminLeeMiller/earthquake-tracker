@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import UTC, datetime
 
@@ -13,6 +14,13 @@ logger = logging.getLogger(__name__)
 
 USGS_LIMIT = 20_000
 
+# Transient failures (network errors, 5xx, 429) get retried with
+# exponential backoff before giving up; other 4xx raise immediately since
+# retrying an invalid request can't help.
+MAX_ATTEMPTS = 3
+BACKOFF_BASE_SECONDS = 1.0
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
 
 async def fetch_earthquakes(
     start: datetime,
@@ -21,14 +29,44 @@ async def fetch_earthquakes(
 ) -> list[dict]:
     """
     Fetch all earthquakes between start and end by recursively splitting
-    time windows when the result set hits the 20,000-event cap.
+    time windows when the result set hits the 20,000-event cap. One HTTP
+    client is shared across every request in the crawl.
     """
     results: list[dict] = []
-    await _fetch_recursive(start, end, min_magnitude, results)
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        await _fetch_recursive(client, start, end, min_magnitude, results)
     return results
 
 
+async def _get_with_retry(client: httpx.AsyncClient, params: dict) -> httpx.Response:
+    last_exc: Exception | None = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            response = await client.get(settings.USGS_BASE_URL, params=params)
+            response.raise_for_status()
+            return response
+        except (httpx.TransportError, httpx.HTTPStatusError) as exc:
+            retryable = isinstance(exc, httpx.TransportError) or (
+                isinstance(exc, httpx.HTTPStatusError)
+                and exc.response.status_code in RETRYABLE_STATUS
+            )
+            if not retryable or attempt == MAX_ATTEMPTS:
+                raise
+            last_exc = exc
+            delay = BACKOFF_BASE_SECONDS * 2 ** (attempt - 1)
+            logger.warning(
+                "USGS request failed (attempt %d/%d): %s — retrying in %.0fs",
+                attempt,
+                MAX_ATTEMPTS,
+                exc,
+                delay,
+            )
+            await asyncio.sleep(delay)
+    raise last_exc  # pragma: no cover — loop always returns or raises
+
+
 async def _fetch_recursive(
+    client: httpx.AsyncClient,
     start: datetime,
     end: datetime,
     min_magnitude: float,
@@ -42,15 +80,13 @@ async def _fetch_recursive(
         "limit": str(USGS_LIMIT),
         "orderby": "time-asc",
     }
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        logger.info(
-            "USGS fetch: %s → %s",
-            start.strftime("%Y-%m-%d"),
-            end.strftime("%Y-%m-%d"),
-        )
-        response = await client.get(settings.USGS_BASE_URL, params=params)
-        response.raise_for_status()
-        data = response.json()
+    logger.info(
+        "USGS fetch: %s → %s",
+        start.strftime("%Y-%m-%d"),
+        end.strftime("%Y-%m-%d"),
+    )
+    response = await _get_with_retry(client, params)
+    data = response.json()
 
     features = data.get("features", [])
     count = len(features)
@@ -59,8 +95,8 @@ async def _fetch_recursive(
     if count >= USGS_LIMIT:
         # Split the window in half and recurse
         mid = datetime.fromtimestamp((start.timestamp() + end.timestamp()) / 2, tz=UTC)
-        await _fetch_recursive(start, mid, min_magnitude, results)
-        await _fetch_recursive(mid, end, min_magnitude, results)
+        await _fetch_recursive(client, start, mid, min_magnitude, results)
+        await _fetch_recursive(client, mid, end, min_magnitude, results)
     else:
         results.extend(features)
 

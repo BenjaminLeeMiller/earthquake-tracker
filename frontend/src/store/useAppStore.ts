@@ -1,12 +1,14 @@
 import { create } from "zustand";
-import type { EarthquakeOut, GlobeStats } from "../api/earthquakes";
+import { fetchAllEarthquakes, type EarthquakeOut, type GlobeStats } from "../api/earthquakes";
 import type { VolcanoRecord } from "../types/volcano";
 import { MAX_MAG } from "../utils/magnitude";
 import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
 
 // Default filter starting points on load (the sliders' own min/max bounds
-// are unaffected — these just narrow the initial view).
-const DEFAULT_MIN_MAGNITUDE = 2.5;
+// are unaffected — these just narrow the initial view). Also what "Reset"
+// on the Magnitude Range control restores, rather than the slider's full
+// MIN_MAG..MAX_MAG bounds.
+export const DEFAULT_MIN_MAGNITUDE = 2.5;
 
 // Add new fault-line datasets here as they're introduced — the store shape,
 // FaultLines renderer, and FaultLayersMenu all key off this union, so a new
@@ -20,6 +22,13 @@ export const FAULT_LAYER_LABELS: Record<FaultLayerKey, string> = {
 
 interface AppState {
   stats: GlobeStats | null;
+  // The full quake dataset, fetched once and shared by every consumer
+  // (globe markers, replay histograms, P-wave layer) — previously each of
+  // those fetched its own copy. EarthquakeDataLoader triggers
+  // loadEarthquakes on mount and again on every dataVersion bump.
+  earthquakes: EarthquakeOut[];
+  quakesLoading: boolean;
+  quakesError: string | null;
   selectedEarthquake: EarthquakeOut | null;
   selectedVolcano: VolcanoRecord | null;
   timeRange: [number, number] | null;
@@ -49,6 +58,12 @@ interface AppState {
   refreshing: boolean;
   dataVersion: number;
 
+  // Whether the right sidebar is shown at all. Collapsing it gives the
+  // globe the full window width — the difference between usable and not
+  // on phone-sized screens, where 300px of sidebar leaves the globe a
+  // sliver.
+  sidebarOpen: boolean;
+
   // Accordion coordination for the sidebar's collapsible sections (Options,
   // Time Range, Magnitude Range): at most one is expanded at a time, keyed
   // by the id each <CollapsibleSection> passes in. null = all collapsed.
@@ -59,6 +74,7 @@ interface AppState {
   expandedSection: string | null;
 
   setStats: (stats: GlobeStats) => void;
+  loadEarthquakes: () => Promise<void>;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
   selectVolcano: (v: VolcanoRecord | null) => void;
   setTimeRange: (range: [number, number]) => void;
@@ -72,10 +88,19 @@ interface AppState {
   setRefreshing: (refreshing: boolean) => void;
   bumpDataVersion: () => void;
   setExpandedSection: (id: string | null) => void;
+  setSidebarOpen: (open: boolean) => void;
 }
+
+// Guards loadEarthquakes against out-of-order responses: if a second load
+// starts before the first resolves (e.g. a rapid dataVersion bump), only
+// the latest request's result is written to the store.
+let loadRequestSeq = 0;
 
 export const useAppStore = create<AppState>((set) => ({
   stats: null,
+  earthquakes: [],
+  quakesLoading: false,
+  quakesError: null,
   selectedEarthquake: null,
   selectedVolcano: null,
   timeRange: null,
@@ -88,9 +113,25 @@ export const useAppStore = create<AppState>((set) => ({
   playbackSpeedDaysPerSec: 1,
   refreshing: false,
   dataVersion: 0,
+  sidebarOpen: true,
   expandedSection: null,
 
   setStats: (stats) => set({ stats }),
+  loadEarthquakes: async () => {
+    const seq = ++loadRequestSeq;
+    set({ quakesLoading: true, quakesError: null });
+    try {
+      const { items } = await fetchAllEarthquakes();
+      if (seq !== loadRequestSeq) return;
+      set({ earthquakes: items, quakesLoading: false });
+    } catch (err) {
+      if (seq !== loadRequestSeq) return;
+      set({
+        quakesError: err instanceof Error ? err.message : "Failed to load earthquakes",
+        quakesLoading: false,
+      });
+    }
+  },
   // Earthquake and volcano selection are mutually exclusive — both detail
   // panels share the same sidebar space, so selecting one clears the other
   // (but deselecting, i.e. passing null, leaves an unrelated selection
@@ -124,4 +165,5 @@ export const useAppStore = create<AppState>((set) => ({
   setRefreshing: (refreshing) => set({ refreshing }),
   bumpDataVersion: () => set((s) => ({ dataVersion: s.dataVersion + 1 })),
   setExpandedSection: (id) => set({ expandedSection: id }),
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
 }));

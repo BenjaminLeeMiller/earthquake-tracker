@@ -18,7 +18,6 @@ const STATS: GlobeStats = {
   total_earthquakes: 11047,
   earliest: "2024-01-01T00:00:00Z",
   latest: "2024-02-01T00:00:00Z",
-  active_layers: [0, 1, 2],
   last_fetched: "2024-02-01T12:00:00Z",
 };
 
@@ -34,7 +33,6 @@ describe("StatsPanel", () => {
     render(<StatsPanel />);
 
     expect(await screen.findByText("11,047")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument(); // active_layers.length
   });
 
   it("clicking refresh calls triggerRefresh, then re-polls stats until last_fetched changes", async () => {

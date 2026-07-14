@@ -9,6 +9,17 @@ function fmt(ms: number) {
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
+// Default the starting date to 1 week ago (clamped to the available data),
+// not all the way back to the earliest quake — the slider's own draggable
+// bounds still span the full dataset. Shared by the initial-load effect and
+// the Reset button, so Reset restores this default rather than the full
+// bounds.
+function computeDefaultTimeRange(bounds: readonly [number, number]): [number, number] {
+  const [minMs, maxMs] = bounds;
+  const defaultStart = Math.max(minMs, Math.min(Date.now() - ONE_WEEK_MS, maxMs));
+  return [defaultStart, maxMs];
+}
+
 export function TimeRangeSlider() {
   const stats = useAppStore((s) => s.stats);
   const timeRange = useAppStore((s) => s.timeRange);
@@ -26,11 +37,7 @@ export function TimeRangeSlider() {
 
   useEffect(() => {
     if (bounds && !timeRange) {
-      // Default the starting date to 1 week ago (clamped to the available
-      // data), not all the way back to the earliest quake — the slider's
-      // own draggable bounds still span the full dataset.
-      const defaultStart = Math.max(bounds[0], Math.min(Date.now() - ONE_WEEK_MS, bounds[1]));
-      setTimeRange([defaultStart, bounds[1]]);
+      setTimeRange(computeDefaultTimeRange(bounds));
     }
   }, [bounds, timeRange, setTimeRange]);
 
@@ -102,7 +109,7 @@ export function TimeRangeSlider() {
         />
       </div>
 
-      <button style={styles.resetBtn} onClick={() => setTimeRange([minMs, maxMs])}>
+      <button style={styles.resetBtn} onClick={() => setTimeRange(computeDefaultTimeRange(bounds))}>
         Reset
       </button>
     </CollapsibleSection>
