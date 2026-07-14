@@ -1,5 +1,6 @@
 import { useAppStore } from "../../store/useAppStore";
 import { EarthquakeList } from "./EarthquakeList";
+import { panelStyle } from "./panelStyle";
 
 export function EarthquakeDetail() {
   const selected = useAppStore((s) => s.selectedEarthquake);
@@ -8,16 +9,7 @@ export function EarthquakeDetail() {
   if (!selected) return null;
 
   return (
-    <div
-      style={{
-        padding: 16,
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        borderRadius: 8,
-        flex: 1,
-        overflowY: "auto",
-      }}
-    >
+    <div style={panelStyle}>
       <div
         style={{
           display: "flex",

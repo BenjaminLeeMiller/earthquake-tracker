@@ -1,4 +1,5 @@
 import { useAppStore } from "../../store/useAppStore";
+import { panelStyle } from "./panelStyle";
 
 function fmtLastEruption(year: number | null): string {
   if (year === null) return "No confirmed Holocene eruption";
@@ -13,16 +14,7 @@ export function VolcanoDetail() {
   if (!selected) return null;
 
   return (
-    <div
-      style={{
-        padding: 16,
-        background: "rgba(0,0,0,0.7)",
-        backdropFilter: "blur(8px)",
-        borderRadius: 8,
-        flex: 1,
-        overflowY: "auto",
-      }}
-    >
+    <div style={panelStyle}>
       <div
         style={{
           display: "flex",

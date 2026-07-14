@@ -73,4 +73,17 @@ describe("VolcanoDetail", () => {
 
     expect(useAppStore.getState().selectedVolcano).toBeNull();
   });
+
+  it("sizes to its content instead of its own flex/scroll region", () => {
+    // Regression test: flex + overflowY here previously collapsed this
+    // panel's min-height to 0 inside the sidebar's flex column, trapping
+    // overflow in a nested scroll region the outer sidebar scroll couldn't
+    // reach (see panelStyle.ts, which this must keep using instead).
+    useAppStore.getState().selectVolcano(VOLCANO);
+    const { container } = render(<VolcanoDetail />);
+    const wrapper = container.firstChild as HTMLElement;
+
+    expect(wrapper.style.flex).toBe("");
+    expect(wrapper.style.overflowY).toBe("");
+  });
 });
