@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { EarthquakeDetail } from "./EarthquakeDetail";
 import { useAppStore } from "../../store/useAppStore";
 import type { EarthquakeOut } from "../../api/earthquakes";
+import { MAX_RELIABLE_WINDOW_MS } from "../../utils/seismicWave";
 
 const INITIAL_STATE = useAppStore.getState();
 
@@ -79,5 +80,23 @@ describe("EarthquakeDetail", () => {
 
     expect(wrapper.style.flex).toBe("");
     expect(wrapper.style.overflowY).toBe("");
+  });
+
+  it("clicking 'Center 30-min Replay Window' sets a centered, MAX_RELIABLE_WINDOW_MS-wide time range", () => {
+    useAppStore.getState().selectEarthquake(QUAKE);
+    render(<EarthquakeDetail />);
+
+    fireEvent.click(screen.getByText("Center 30-min Replay Window"));
+
+    const t = new Date(QUAKE.occurred_at!).getTime();
+    const half = MAX_RELIABLE_WINDOW_MS / 2;
+    expect(useAppStore.getState().timeRange).toEqual([t - half, t + half]);
+  });
+
+  it("omits the replay-window button when the quake has no occurred_at", () => {
+    useAppStore.getState().selectEarthquake({ ...QUAKE, occurred_at: null });
+    render(<EarthquakeDetail />);
+
+    expect(screen.queryByText("Center 30-min Replay Window")).not.toBeInTheDocument();
   });
 });
