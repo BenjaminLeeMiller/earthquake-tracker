@@ -22,7 +22,6 @@ function seedStats() {
     total_earthquakes: 10,
     earliest: EARLIEST,
     latest: LATEST,
-    active_layers: [0],
     last_fetched: null,
   });
 }

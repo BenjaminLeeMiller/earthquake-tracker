@@ -5,7 +5,6 @@ import pytest
 from sqlalchemy import select
 
 from app.config import settings
-from app.models.cell import CellAggregate
 from app.models.earthquake import Earthquake
 from app.services.ingestor import run_hourly_refresh, run_initial_load
 
@@ -48,7 +47,7 @@ class TestRunHourlyRefresh:
         await run_hourly_refresh(db_session)
         assert usgs_mock.calls.call_count == 2
 
-    async def test_computes_cell_columns_and_rebuilds_aggregates(self, db_session, usgs_mock):
+    async def test_computes_cell_columns(self, db_session, usgs_mock):
         feature = make_feature(id="us_cell_1", lon=139.7, lat=35.6, depth_km=10.0, mag=4.5)
         usgs_mock.get(settings.USGS_BASE_URL).mock(
             return_value=httpx.Response(200, json=make_feature_collection([feature]))
@@ -62,11 +61,6 @@ class TestRunHourlyRefresh:
         assert row.depth_layer is not None
         assert row.lat_band is not None
         assert row.lon_index is not None
-
-        aggregates = (await db_session.execute(select(CellAggregate))).scalars().all()
-        assert len(aggregates) == 1
-        assert aggregates[0].eq_count == 1
-        assert aggregates[0].max_magnitude == 4.5
 
     async def test_upsert_updates_existing_row_not_duplicate(self, db_session, usgs_mock):
         original = make_feature(id="us_upsert_1", mag=3.0, place="Original place")

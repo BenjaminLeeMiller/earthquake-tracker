@@ -55,10 +55,10 @@ for the globe, Zustand for state.
 ```
 backend/
   app/
-    api/          # FastAPI routers (earthquakes, globe stats/cells)
+    api/          # FastAPI routers (earthquakes, globe stats)
     models/        # SQLAlchemy models
     schemas/       # Pydantic response schemas
-    services/      # USGS client, ingestion, grid/cell aggregation
+    services/      # USGS client, ingestion, grid binning
     tasks/         # APScheduler hourly refresh job
 frontend/
   src/
@@ -129,9 +129,7 @@ All routes are prefixed with `/api`:
 - `GET /earthquakes` — paginated earthquake list, filterable by `min_mag`
 - `POST /earthquakes/refresh` — trigger a manual USGS refresh (background task)
 - `GET /globe/earthquakes` — full unpaginated earthquake list, for the globe
-- `GET /globe/cells?depth_layer=` — spatially-binned cell aggregates
-- `GET /globe/stats` — total count, date range, active layers, last-refreshed time
-- `GET /cells/{layer}/{lat_band}/{lon_index}` — earthquakes within one grid cell
+- `GET /globe/stats` — total count, date range, last-refreshed time
 - `GET /health` — health check
 
 ## License

@@ -23,7 +23,6 @@ export interface GlobeStats {
   total_earthquakes: number;
   earliest: string | null;
   latest: string | null;
-  active_layers: number[];
   last_fetched: string | null;
 }
 

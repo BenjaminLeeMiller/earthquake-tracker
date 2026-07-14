@@ -70,7 +70,6 @@ export function StatsPanel() {
       </h2>
       <Row label="Total events" value={stats.total_earthquakes.toLocaleString()} />
       <Row label="Date range" value={`${fmt(stats.earliest)} – ${fmt(stats.latest)}`} />
-      <Row label="Active layers" value={stats.active_layers.length.toString()} />
       <Row
         label="Last refreshed"
         value={stats.last_fetched ? new Date(stats.last_fetched).toLocaleTimeString() : "—"}

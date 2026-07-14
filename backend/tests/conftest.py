@@ -63,9 +63,7 @@ async def _prepare_database():
 @pytest_asyncio.fixture
 async def _clean_tables(_prepare_database):
     async with AsyncSessionLocal() as session:
-        await session.execute(
-            text("TRUNCATE TABLE earthquakes, cell_aggregates RESTART IDENTITY CASCADE")
-        )
+        await session.execute(text("TRUNCATE TABLE earthquakes RESTART IDENTITY CASCADE"))
         await session.commit()
     yield
 
