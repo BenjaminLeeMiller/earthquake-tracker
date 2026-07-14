@@ -5,13 +5,6 @@ function clampedMag(mag: number | null): number {
   return Math.max(MIN_MAG, Math.min(MAX_MAG, mag ?? MIN_MAG));
 }
 
-// Linear (not curved) so every whole-number magnitude step gets a visually
-// distinguishable color, including at the low end — a curved mapping here
-// previously compressed most small quakes into nearly the same color.
-function normalizedMag(mag: number | null): number {
-  return (clampedMag(mag) - MIN_MAG) / (MAX_MAG - MIN_MAG);
-}
-
 // Multi-hue heat-map stops: pale yellow (small quakes) -> amber -> orange-red
 // -> red -> dark maroon (large quakes). A single-hue ramp (e.g. beige->dark
 // red) only varies in shade, which the eye struggles to tell apart in small
@@ -44,36 +37,39 @@ function colorAt(t: number): string {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// The color gradient's own domain is narrower than MIN_MAG..MAX_MAG: real
-// earthquake data is heavily concentrated in a mid-single-digit band (the
-// app's own default magnitude floor is 2.5, and M7+ events are rare), so
-// stretching the gradient across the full 0-10 range left the vast
-// majority of on-screen quakes crammed into a sliver of it, still looking
-// nearly the same color. Scoping the gradient to this practical band means
-// differentiation is spent where the data actually is; magnitudes outside
-// it just clamp to the nearest endpoint color.
-const COLOR_MIN_MAG = 2.5;
-const COLOR_MAX_MAG = 7;
+// Both visual channels (color and size) map over a domain narrower than
+// MIN_MAG..MAX_MAG: real earthquake data is heavily concentrated in a
+// mid-single-digit band (the app's own default magnitude floor is 2.5, and
+// M7+ events are rare), so stretching either gradient across the full 0-10
+// range left the vast majority of on-screen quakes crammed into a sliver
+// of it, still looking nearly the same. Scoping to this practical band
+// means differentiation is spent where the data actually is; magnitudes
+// outside it just clamp to the nearest endpoint.
+const PRACTICAL_MIN_MAG = 2.5;
+const PRACTICAL_MAX_MAG = 7;
 
-function normalizedMagForColor(mag: number | null): number {
-  const m = Math.max(COLOR_MIN_MAG, Math.min(COLOR_MAX_MAG, mag ?? COLOR_MIN_MAG));
-  return (m - COLOR_MIN_MAG) / (COLOR_MAX_MAG - COLOR_MIN_MAG);
+function normalizedMagPractical(mag: number | null): number {
+  const m = Math.max(PRACTICAL_MIN_MAG, Math.min(PRACTICAL_MAX_MAG, mag ?? PRACTICAL_MIN_MAG));
+  return (m - PRACTICAL_MIN_MAG) / (PRACTICAL_MAX_MAG - PRACTICAL_MIN_MAG);
 }
 
 /** Canonical magnitude→color mapping, shared by sidebar cards and globe markers. */
 export function magColor(mag: number | null): string {
-  return colorAt(normalizedMagForColor(mag));
+  return colorAt(normalizedMagPractical(mag));
 }
 
 /** Magnitude→sphere radius (world units; base sphereGeometry radius is 1). */
-const MIN_R = 0.001;
-const MAX_R = 0.05;
-// Steeper than a linear falloff so small quakes shrink further relative to
-// the max, independent of the (now-linear) color gradient.
-const RADIUS_CURVE = 2.6;
+// MIN_R is a visible floor — even the smallest displayed quake reads as a
+// dot at the default zoom, instead of the sub-pixel speck the old
+// full-domain curve produced for everything under ~M5.
+const MIN_R = 0.006;
+const MAX_R = 0.045;
+// Mild curve only — the practical-band domain scoping does most of the
+// differentiation work; this just keeps the largest quakes prominent.
+const RADIUS_CURVE = 1.4;
 
 export function magRadius(mag: number | null): number {
-  const t = Math.pow(normalizedMag(mag), RADIUS_CURVE);
+  const t = Math.pow(normalizedMagPractical(mag), RADIUS_CURVE);
   return MIN_R + t * (MAX_R - MIN_R);
 }
 
@@ -94,12 +90,13 @@ export function magBucketIndex(mag: number | null): number {
 }
 
 // Each bucket's color reflects where its whole-number magnitude falls
-// within the practical COLOR_MIN_MAG..COLOR_MAX_MAG band (same scoping as
-// magColor), not a straight line across all 11 buckets — magnitudes below
-// 2.5 or above 7 clamp to the nearest endpoint since they're rare in
-// practice (and the app's own default filter already excludes sub-2.5).
+// within the practical PRACTICAL_MIN_MAG..PRACTICAL_MAX_MAG band (same
+// scoping as magColor), not a straight line across all 11 buckets —
+// magnitudes below 2.5 or above 7 clamp to the nearest endpoint since
+// they're rare in practice (and the app's own default filter already
+// excludes sub-2.5).
 export const MAG_BUCKET_COLORS: string[] = Array.from({ length: MAG_BUCKET_COUNT }, (_, i) =>
-  colorAt(normalizedMagForColor(i))
+  colorAt(normalizedMagPractical(i))
 );
 
 // Replay fade-out duration per magnitude bucket: weaker quakes fade within
