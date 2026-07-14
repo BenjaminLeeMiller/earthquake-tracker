@@ -17,5 +17,11 @@ async def get_db() -> AsyncSession:
 
 
 async def create_tables() -> None:
+    """Create all ORM tables directly (tests only).
+
+    The app itself migrates via Alembic at startup (app/migrations.py);
+    this shortcut exists for the test suite, which rebuilds a throwaway
+    database per session and doesn't need migration history.
+    """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
