@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { GlobeCanvas } from "./components/Globe/GlobeCanvas";
+import { EarthquakeDataLoader } from "./components/EarthquakeDataLoader";
 import { StatsPanel } from "./components/Sidebar/StatsPanel";
+import { DataStatus } from "./components/Sidebar/DataStatus";
 import { EarthquakeDetail } from "./components/Sidebar/EarthquakeDetail";
 import { VolcanoDetail } from "./components/Sidebar/VolcanoDetail";
 import { TimeRangeSlider } from "./components/Controls/TimeRangeSlider";
@@ -60,7 +62,9 @@ export default function App() {
           borderLeft: "1px solid #1a2a3a",
         }}
       >
+        <EarthquakeDataLoader />
         <StatsPanel />
+        <DataStatus />
         <OptionsMenu />
         <TimeRangeSlider />
         <MagnitudeRangeSlider />

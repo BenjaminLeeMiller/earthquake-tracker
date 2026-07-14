@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
-import { fetchAllEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
 import { magColor, MAX_MAG } from "../../utils/magnitude";
 import { computeHistogramBuckets } from "../../utils/replayHistogram";
 
@@ -16,18 +14,8 @@ export function ReplayHistograms() {
   const magRange = useAppStore((s) => s.magRange);
   const playbackTime = useAppStore((s) => s.playbackTime);
   const isPlaying = useAppStore((s) => s.isPlaying);
-  const dataVersion = useAppStore((s) => s.dataVersion);
-  const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchAllEarthquakes().then(({ items }) => {
-      if (!cancelled) setQuakes(items);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [dataVersion]);
+  // The shared dataset — fetched once by EarthquakeDataLoader, not per-component.
+  const quakes = useAppStore((s) => s.earthquakes);
 
   if (!timeRange) return null;
   const [start, end] = timeRange;

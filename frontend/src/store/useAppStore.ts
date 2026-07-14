@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { EarthquakeOut, GlobeStats } from "../api/earthquakes";
+import { fetchAllEarthquakes, type EarthquakeOut, type GlobeStats } from "../api/earthquakes";
 import type { VolcanoRecord } from "../types/volcano";
 import { MAX_MAG } from "../utils/magnitude";
 import { computeDefaultPlaybackSpeed } from "../utils/playbackSpeed";
@@ -22,6 +22,13 @@ export const FAULT_LAYER_LABELS: Record<FaultLayerKey, string> = {
 
 interface AppState {
   stats: GlobeStats | null;
+  // The full quake dataset, fetched once and shared by every consumer
+  // (globe markers, replay histograms, P-wave layer) — previously each of
+  // those fetched its own copy. EarthquakeDataLoader triggers
+  // loadEarthquakes on mount and again on every dataVersion bump.
+  earthquakes: EarthquakeOut[];
+  quakesLoading: boolean;
+  quakesError: string | null;
   selectedEarthquake: EarthquakeOut | null;
   selectedVolcano: VolcanoRecord | null;
   timeRange: [number, number] | null;
@@ -61,6 +68,7 @@ interface AppState {
   expandedSection: string | null;
 
   setStats: (stats: GlobeStats) => void;
+  loadEarthquakes: () => Promise<void>;
   selectEarthquake: (eq: EarthquakeOut | null) => void;
   selectVolcano: (v: VolcanoRecord | null) => void;
   setTimeRange: (range: [number, number]) => void;
@@ -76,8 +84,16 @@ interface AppState {
   setExpandedSection: (id: string | null) => void;
 }
 
+// Guards loadEarthquakes against out-of-order responses: if a second load
+// starts before the first resolves (e.g. a rapid dataVersion bump), only
+// the latest request's result is written to the store.
+let loadRequestSeq = 0;
+
 export const useAppStore = create<AppState>((set) => ({
   stats: null,
+  earthquakes: [],
+  quakesLoading: false,
+  quakesError: null,
   selectedEarthquake: null,
   selectedVolcano: null,
   timeRange: null,
@@ -93,6 +109,21 @@ export const useAppStore = create<AppState>((set) => ({
   expandedSection: null,
 
   setStats: (stats) => set({ stats }),
+  loadEarthquakes: async () => {
+    const seq = ++loadRequestSeq;
+    set({ quakesLoading: true, quakesError: null });
+    try {
+      const { items } = await fetchAllEarthquakes();
+      if (seq !== loadRequestSeq) return;
+      set({ earthquakes: items, quakesLoading: false });
+    } catch (err) {
+      if (seq !== loadRequestSeq) return;
+      set({
+        quakesError: err instanceof Error ? err.message : "Failed to load earthquakes",
+        quakesLoading: false,
+      });
+    }
+  },
   // Earthquake and volcano selection are mutually exclusive — both detail
   // panels share the same sidebar space, so selecting one clears the other
   // (but deselecting, i.e. passing null, leaves an unrelated selection

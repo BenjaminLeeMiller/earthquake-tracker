@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ThreeEvent, useFrame } from "@react-three/fiber";
 import { Color, InstancedMesh, Object3D, ShaderMaterial, Vector3 } from "three";
 import { useAppStore } from "../../store/useAppStore";
-import { fetchAllEarthquakes, type EarthquakeOut } from "../../api/earthquakes";
+import type { EarthquakeOut } from "../../api/earthquakes";
 import { latLonToXYZ, latLonDepthToXYZ } from "../../utils/grid";
 import { horizonThreshold, isFacingCamera } from "../../utils/horizon";
 import {
@@ -232,21 +232,8 @@ export function EarthquakeLayer() {
   const selectEarthquake = useAppStore((s) => s.selectEarthquake);
   const timeRange = useAppStore((s) => s.timeRange);
   const magRange = useAppStore((s) => s.magRange);
-  const dataVersion = useAppStore((s) => s.dataVersion);
-
-  const [quakes, setQuakes] = useState<EarthquakeOut[]>([]);
-
-  // Fetch all earthquakes on mount, and again whenever dataVersion bumps
-  // (StatsPanel does this once a manual USGS refresh completes).
-  useEffect(() => {
-    let cancelled = false;
-    fetchAllEarthquakes().then(({ items }) => {
-      if (!cancelled) setQuakes(items);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [dataVersion]);
+  // The shared dataset — fetched once by EarthquakeDataLoader, not per-layer.
+  const quakes = useAppStore((s) => s.earthquakes);
 
   // Narrow to the user-selected time range and magnitude range (client-side
   // — the full dataset is already fetched, so no refetch is needed while
