@@ -106,6 +106,15 @@ Environment variables (see `.env.example`), read by the backend from `.env`:
 **Tests** — `cd backend && pytest` (needs a Postgres instance; see
 `backend/tests/conftest.py`) / `cd frontend && npm test`.
 
+**E2e smoke tests** — `cd frontend && npm run e2e` drives a headless
+browser against the full Docker stack (Playwright starts `docker compose
+up` itself if the stack isn't already running; first run needs
+`npx playwright install chromium`).
+
+**Database migrations** — Alembic, run automatically at backend startup.
+To add one: `cd backend && alembic revision -m "describe the change"`,
+then fill in the generated file under `backend/app/alembic/versions/`.
+
 **Linting and formatting** — Ruff (backend), ESLint + Prettier (frontend):
 
 ```bash

@@ -17,3 +17,7 @@ dist/
 
 # Editor / local tooling
 .claude/settings.local.json
+
+# Playwright output
+frontend/test-results/
+frontend/playwright-report/

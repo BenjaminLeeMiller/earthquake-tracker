@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
@@ -31,5 +32,8 @@ export default defineConfig({
     // jsdom` docblock at the top of the file, so those stay fast.
     environment: "node",
     setupFiles: ["./src/test/setup.ts"],
+    // e2e/ holds Playwright specs, which run via `npm run e2e` against the
+    // full Docker stack — vitest must not try to execute them.
+    exclude: [...configDefaults.exclude, "e2e/**"],
   },
 });
